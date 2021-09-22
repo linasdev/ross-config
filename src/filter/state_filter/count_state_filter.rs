@@ -1,6 +1,6 @@
-use crate::Value;
 use crate::filter::Filter;
 use crate::state::StateManager;
+use crate::Value;
 
 pub struct CountStateFilter {
     state_index: u32,
@@ -9,7 +9,10 @@ pub struct CountStateFilter {
 
 impl CountStateFilter {
     pub fn new(state_index: u32, required_state: u32) -> Self {
-        Self { state_index, required_state }
+        Self {
+            state_index,
+            required_state,
+        }
     }
 }
 

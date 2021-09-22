@@ -1,6 +1,6 @@
-use crate::Value;
 use crate::filter::Filter;
 use crate::state::StateManager;
+use crate::Value;
 
 pub struct U32IsEqualStateFilter {
     state_index: u32,

@@ -1,7 +1,7 @@
 extern crate alloc;
 
-use alloc::vec::Vec;
 use alloc::vec;
+use alloc::vec::Vec;
 
 use crate::Value;
 
@@ -11,9 +11,7 @@ pub struct StateManager {
 
 impl StateManager {
     pub fn new() -> Self {
-        Self {
-            state: vec!(),
-        }
+        Self { state: vec![] }
     }
 
     pub fn add_state(&mut self, value: Value) -> u32 {

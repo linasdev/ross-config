@@ -1,6 +1,6 @@
-use crate::Value;
 use crate::filter::Filter;
 use crate::state::StateManager;
+use crate::Value;
 
 pub struct U8IncrementStateFilter {
     state_index: u32,

@@ -2,10 +2,10 @@ use ross_protocol::convert_packet::ConvertPacket;
 use ross_protocol::event::bcm_event::BcmChangeBrightnessEvent;
 use ross_protocol::packet::Packet;
 
-use crate::DeviceInfo;
-use crate::Value;
 use crate::producer::Producer;
 use crate::state::StateManager;
+use crate::DeviceInfo;
+use crate::Value;
 
 pub struct BcmChangeBrightnessStateProducer {
     bcm_address: u16,
@@ -24,7 +24,12 @@ impl BcmChangeBrightnessStateProducer {
 }
 
 impl Producer for BcmChangeBrightnessStateProducer {
-    fn produce(&self, _value: &Value, device_info: &DeviceInfo, state_manager: &StateManager) -> Option<Packet> {
+    fn produce(
+        &self,
+        _value: &Value,
+        device_info: &DeviceInfo,
+        state_manager: &StateManager,
+    ) -> Option<Packet> {
         let current_value = *match state_manager.get_value(self.state_index) {
             Value::U8(value) => value,
             _ => {
