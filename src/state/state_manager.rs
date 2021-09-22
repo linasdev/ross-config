@@ -3,7 +3,7 @@ extern crate alloc;
 use alloc::vec::Vec;
 use alloc::vec;
 
-use crate::extractor::Value;
+use crate::Value;
 
 pub struct StateManager {
     state: Vec<Value>,

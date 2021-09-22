@@ -1,4 +1,4 @@
-use crate::extractor::Value;
+use crate::Value;
 use crate::filter::Filter;
 use crate::state::StateManager;
 

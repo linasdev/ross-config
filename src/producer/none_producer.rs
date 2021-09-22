@@ -1,7 +1,7 @@
 use ross_protocol::packet::Packet;
 
 use crate::DeviceInfo;
-use crate::extractor::Value;
+use crate::Value;
 use crate::producer::Producer;
 use crate::state::StateManager;
 

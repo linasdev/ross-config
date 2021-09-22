@@ -1,7 +1,7 @@
 use ross_protocol::packet::Packet;
 
 use crate::DeviceInfo;
-use crate::extractor::Value;
+use crate::Value;
 use crate::state::StateManager;
 
 mod bcm_change_brightness_producer;
