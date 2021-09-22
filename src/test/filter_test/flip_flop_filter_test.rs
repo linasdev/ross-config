@@ -1,6 +1,6 @@
-use crate::Value;
 use crate::filter::*;
 use crate::state::StateManager;
+use crate::Value;
 
 const VALUE_1: u8 = 0xff;
 

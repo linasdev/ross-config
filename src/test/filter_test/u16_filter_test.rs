@@ -1,6 +1,6 @@
-use crate::Value;
 use crate::filter::*;
 use crate::state::StateManager;
+use crate::Value;
 
 const VALUE_1: u16 = 0x0000;
 const VALUE_2: u16 = 0xabab;
@@ -11,7 +11,10 @@ fn u16_is_equal_filter_values_equal_test() {
     let mut state_manager = StateManager::new();
     let mut filter = U16IsEqualFilter::new(VALUE_1);
 
-    assert_eq!(filter.filter(&Value::U16(VALUE_1), &mut state_manager), true);
+    assert_eq!(
+        filter.filter(&Value::U16(VALUE_1), &mut state_manager),
+        true
+    );
 }
 
 #[test]
@@ -19,7 +22,10 @@ fn u16_is_equal_filter_values_not_equal_test() {
     let mut state_manager = StateManager::new();
     let mut filter = U16IsEqualFilter::new(VALUE_1);
 
-    assert_eq!(filter.filter(&Value::U16(VALUE_2), &mut state_manager), false);
+    assert_eq!(
+        filter.filter(&Value::U16(VALUE_2), &mut state_manager),
+        false
+    );
 }
 
 #[test]

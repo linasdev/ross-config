@@ -1,7 +1,7 @@
-use crate::Value;
-use crate::filter::Filter;
 use crate::filter::state_filter::*;
+use crate::filter::Filter;
 use crate::state::StateManager;
+use crate::Value;
 
 const VALUE_1: u8 = 0x00;
 const VALUE_2: u32 = 0xffff_ffff;
@@ -42,7 +42,6 @@ fn u8_increment_state_filter_value_has_bad_type_test() {
 
     filter.filter(&Value::U32(VALUE_2), &mut state_manager);
 }
-
 
 #[test]
 #[should_panic(expected = "Wrong state value provided for u8 increment state filter.")]

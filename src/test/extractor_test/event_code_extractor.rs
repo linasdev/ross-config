@@ -13,10 +13,10 @@ const PACKET: Packet = Packet {
 #[test]
 fn event_code_extractor_test() {
     let mut packet = PACKET;
-    packet.data = vec!(
+    packet.data = vec![
         ((BCM_CHANGE_BRIGHTNESS_EVENT_CODE >> 8) & 0xff) as u8, // event code
         ((BCM_CHANGE_BRIGHTNESS_EVENT_CODE >> 0) & 0xff) as u8, // event code
-    );
+    ];
 
     let extractor = NoneExtractor::new();
 
@@ -27,9 +27,7 @@ fn event_code_extractor_test() {
 #[should_panic(expected = "Wrong packet format provided for event code extractor.")]
 fn event_code_extractor_wrong_format_test() {
     let mut packet = PACKET;
-    packet.data = vec!(
-        ((BCM_CHANGE_BRIGHTNESS_EVENT_CODE >> 8) & 0xff) as u8,
-    );
+    packet.data = vec![((BCM_CHANGE_BRIGHTNESS_EVENT_CODE >> 8) & 0xff) as u8];
 
     let extractor = NoneExtractor::new();
 

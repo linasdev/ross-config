@@ -1,7 +1,7 @@
-use crate::Value;
-use crate::filter::Filter;
 use crate::filter::state_filter::*;
+use crate::filter::Filter;
 use crate::state::StateManager;
+use crate::Value;
 
 const VALUE_1: u32 = 0x0000_0000;
 const VALUE_2: u8 = 0xff;
@@ -18,7 +18,6 @@ fn count_state_filter_initial_zero_maximum_two_test() {
     assert_eq!(filter.filter(&Value::None, &mut state_manager), false);
     assert_eq!(filter.filter(&Value::None, &mut state_manager), true);
 }
-
 
 #[test]
 fn count_state_filter_initial_four_maximum_five_test() {
@@ -45,7 +44,6 @@ fn count_state_filter_value_has_bad_type_test() {
 
     filter.filter(&Value::U32(VALUE_1), &mut state_manager);
 }
-
 
 #[test]
 #[should_panic(expected = "Wrong state value provided for count state filter.")]

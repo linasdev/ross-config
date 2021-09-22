@@ -13,10 +13,10 @@ const PACKET: Packet = Packet {
 #[test]
 fn none_extractor_test() {
     let mut packet = PACKET;
-    packet.data = vec!(
+    packet.data = vec![
         ((BCM_CHANGE_BRIGHTNESS_EVENT_CODE >> 8) & 0xff) as u8, // event code
         ((BCM_CHANGE_BRIGHTNESS_EVENT_CODE >> 0) & 0xff) as u8, // event code
-    );
+    ];
 
     let extractor = NoneExtractor::new();
 
