@@ -5,7 +5,7 @@ use crate::state::StateManager;
 const VALUE_1: u8 = 0xff;
 
 #[test]
-fn flip_flop_filter_initial_zero_maximum_two_test() {
+fn count_filter_initial_zero_maximum_two_test() {
     let mut state_manager = StateManager::new();
     let mut filter = CountFilter::new(0, 2);
 
@@ -17,7 +17,7 @@ fn flip_flop_filter_initial_zero_maximum_two_test() {
 
 
 #[test]
-fn flip_flop_filter_initial_four_maximum_five_test() {
+fn count_filter_initial_four_maximum_five_test() {
     let mut state_manager = StateManager::new();
     let mut filter = CountFilter::new(4, 5);
 
@@ -31,7 +31,7 @@ fn flip_flop_filter_initial_four_maximum_five_test() {
 
 #[test]
 #[should_panic(expected = "Wrong value provided for count filter.")]
-fn u16_is_equal_filter_value_has_bad_type_test() {
+fn count_filter_value_has_bad_type_test() {
     let mut state_manager = StateManager::new();
     let mut filter = CountFilter::new(0, 5);
 

@@ -28,7 +28,7 @@ fn flip_flop_filter_initial_true_test() {
 
 #[test]
 #[should_panic(expected = "Wrong value provided for flip flop filter.")]
-fn u16_is_equal_filter_value_has_bad_type_test() {
+fn flip_flop_filter_value_has_bad_type_test() {
     let mut state_manager = StateManager::new();
     let mut filter = FlipFlopFilter::new(true);
 
