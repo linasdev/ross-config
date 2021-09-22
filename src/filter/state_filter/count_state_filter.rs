@@ -28,13 +28,15 @@ impl Filter for CountStateFilter {
         let current_state = state_manager.get_value(self.state_index);
 
         let current_state = match current_state {
-            Value::U32(value) => value,
+            Value::U32(value) => value + 1,
             _ => {
                 panic!("Wrong state value provided for count state filter.");
             }
         };
 
-        if *current_state == self.required_state {
+        state_manager.set_value(self.state_index, Value::U32(current_state));
+
+        if current_state == self.required_state {
             state_manager.set_value(self.state_index, Value::U32(0));
             true
         } else {
