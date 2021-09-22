@@ -97,3 +97,25 @@ fn u32_increment_state_filter_state_value_has_bad_type_test() {
 
     filter.filter(&Value::None, &mut state_manager);
 }
+
+#[test]
+fn u32_set_state_filter_test() {
+    let mut state_manager = StateManager::new();
+    let state_index = state_manager.add_state(Value::U32(VALUE_1));
+
+    let mut filter = U32SetStateFilter::new(state_index, VALUE_2);
+
+    assert_eq!(filter.filter(&Value::None, &mut state_manager), true);
+    assert_eq!(*state_manager.get_value(state_index), Value::U32(VALUE_2));
+}
+
+#[test]
+#[should_panic(expected = "Wrong value provided for u32 set state filter.")]
+fn u32_set_state_filter_value_has_bad_type_test() {
+    let mut state_manager = StateManager::new();
+    let state_index = state_manager.add_state(Value::U32(VALUE_1));
+
+    let mut filter = U32SetStateFilter::new(state_index, VALUE_2);
+
+    filter.filter(&Value::U32(VALUE_2), &mut state_manager);
+}
