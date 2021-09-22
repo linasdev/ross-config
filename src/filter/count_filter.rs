@@ -2,6 +2,7 @@ use crate::filter::Filter;
 use crate::state::StateManager;
 use crate::Value;
 
+#[repr(C)]
 pub struct CountFilter {
     state: u32,
     required_state: u32,

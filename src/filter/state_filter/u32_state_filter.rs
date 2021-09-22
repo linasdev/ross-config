@@ -2,6 +2,7 @@ use crate::filter::Filter;
 use crate::state::StateManager;
 use crate::Value;
 
+#[repr(C)]
 pub struct U32IsEqualStateFilter {
     state_index: u32,
     value: u32,
@@ -35,6 +36,7 @@ impl Filter for U32IsEqualStateFilter {
     }
 }
 
+#[repr(C)]
 pub struct U32IncrementStateFilter {
     state_index: u32,
 }
@@ -69,6 +71,7 @@ impl Filter for U32IncrementStateFilter {
     }
 }
 
+#[repr(C)]
 pub struct U32SetStateFilter {
     state_index: u32,
     value: u32,

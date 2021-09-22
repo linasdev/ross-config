@@ -6,6 +6,7 @@ use crate::producer::Producer;
 use crate::state::StateManager;
 use crate::Value;
 
+#[repr(C)]
 pub struct BcmChangeBrightnessProducer {
     bcm_address: u16,
     channel: u8,

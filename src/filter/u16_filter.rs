@@ -2,6 +2,7 @@ use crate::filter::Filter;
 use crate::state::StateManager;
 use crate::Value;
 
+#[repr(C)]
 pub struct U16IsEqualFilter {
     value: u16,
 }

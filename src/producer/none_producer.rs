@@ -4,6 +4,7 @@ use crate::producer::Producer;
 use crate::state::StateManager;
 use crate::Value;
 
+#[repr(C)]
 pub struct NoneProducer {}
 
 impl NoneProducer {

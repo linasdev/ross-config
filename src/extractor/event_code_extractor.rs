@@ -4,6 +4,7 @@ use ross_protocol::packet::Packet;
 
 use crate::extractor::{Extractor, Value};
 
+#[repr(C)]
 pub struct EventCodeExtractor {}
 
 impl EventCodeExtractor {
