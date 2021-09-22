@@ -1,3 +1,5 @@
+#![no_std]
+
 pub mod extractor;
 pub mod filter;
 pub mod matcher;
