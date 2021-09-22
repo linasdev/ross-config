@@ -4,6 +4,9 @@ pub mod matcher;
 pub mod producer;
 pub mod state;
 
+#[cfg(test)]
+mod test;
+
 pub struct DeviceInfo {
     device_address: u16,
 }
