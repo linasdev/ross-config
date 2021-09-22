@@ -4,11 +4,10 @@ use crate::state::StateManager;
 use crate::DeviceInfo;
 use crate::Value;
 
+pub mod state_producer;
+
 mod bcm_change_brightness_producer;
 pub use bcm_change_brightness_producer::*;
-
-mod bcm_change_brightness_state_producer;
-pub use bcm_change_brightness_state_producer::*;
 
 mod none_producer;
 pub use none_producer::*;
