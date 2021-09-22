@@ -1,7 +1,6 @@
 use ross_protocol::packet::Packet;
 
 use crate::state::StateManager;
-use crate::DeviceInfo;
 use crate::Value;
 
 pub mod state_producer;
@@ -16,7 +15,7 @@ pub trait Producer {
     fn produce(
         &self,
         value: &Value,
-        device_info: &DeviceInfo,
         state_manager: &StateManager,
+        device_address: u16,
     ) -> Option<Packet>;
 }

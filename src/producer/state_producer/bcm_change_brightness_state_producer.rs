@@ -4,7 +4,6 @@ use ross_protocol::packet::Packet;
 
 use crate::producer::Producer;
 use crate::state::StateManager;
-use crate::DeviceInfo;
 use crate::Value;
 
 pub struct BcmChangeBrightnessStateProducer {
@@ -27,8 +26,8 @@ impl Producer for BcmChangeBrightnessStateProducer {
     fn produce(
         &self,
         _value: &Value,
-        device_info: &DeviceInfo,
         state_manager: &StateManager,
+        device_address: u16,
     ) -> Option<Packet> {
         let current_value = *match state_manager.get_value(self.state_index) {
             Value::U8(value) => value,
@@ -39,7 +38,7 @@ impl Producer for BcmChangeBrightnessStateProducer {
 
         let bcm_change_brightness_event = BcmChangeBrightnessEvent {
             bcm_address: self.bcm_address,
-            transmitter_address: device_info.device_address,
+            transmitter_address: device_address,
             channel: self.channel,
             brightness: current_value,
         };
