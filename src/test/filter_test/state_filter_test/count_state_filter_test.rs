@@ -34,6 +34,7 @@ fn count_state_filter_initial_four_maximum_five_test() {
     assert_eq!(filter.filter(&Value::None, &mut state_manager), false);
     assert_eq!(filter.filter(&Value::None, &mut state_manager), true);
 }
+
 #[test]
 #[should_panic(expected = "Wrong value provided for count state filter.")]
 fn count_state_filter_value_has_bad_type_test() {
