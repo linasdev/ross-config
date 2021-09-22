@@ -85,7 +85,7 @@ impl Filter for U32SetStateFilter {
         match value {
             Value::None => (),
             _ => {
-                panic!("Wrong value provided for u8 increment state filter.");
+                panic!("Wrong value provided for u32 set state filter.");
             }
         };
 

@@ -17,7 +17,7 @@ impl Filter for U16IsEqualFilter {
         let value = match value {
             Value::U16(value) => value,
             _ => {
-                panic!("Wrong value provided for u16 is equal matcher.");
+                panic!("Wrong value provided for u16 is equal filter.");
             }
         };
 
