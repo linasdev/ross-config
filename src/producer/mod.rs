@@ -11,6 +11,9 @@ pub use bcm_change_brightness_producer::*;
 mod none_producer;
 pub use none_producer::*;
 
+pub const BCM_CHANGE_BRIGHTNESS_PRODUCER_CODE: u16 = 0x0000;
+pub const BCM_CHANGE_BRIGHTNESS_STATE_PRODUCER_CODE: u16 = 0x0001;
+
 pub trait Producer {
     fn produce(
         &self,
