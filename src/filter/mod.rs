@@ -1,3 +1,5 @@
+use downcast_rs::{Downcast, impl_downcast};
+
 use crate::state::StateManager;
 use crate::Value;
 
@@ -21,6 +23,8 @@ pub const FLIP_FLOP_FILTER_CODE: u16 = 0x0005;
 pub const COUNT_FILTER_CODE: u16 = 0x0006;
 pub const COUNT_STATE_FILTER_CODE: u16 = 0x0007;
 
-pub trait Filter {
+pub trait Filter: Downcast {
     fn filter(&mut self, value: &Value, state_manager: &mut StateManager) -> bool;
 }
+
+impl_downcast!(Filter);

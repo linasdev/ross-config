@@ -1,3 +1,5 @@
+use downcast_rs::{Downcast, impl_downcast};
+
 use ross_protocol::packet::Packet;
 
 use crate::state::StateManager;
@@ -14,7 +16,7 @@ pub use none_producer::*;
 pub const BCM_CHANGE_BRIGHTNESS_PRODUCER_CODE: u16 = 0x0000;
 pub const BCM_CHANGE_BRIGHTNESS_STATE_PRODUCER_CODE: u16 = 0x0001;
 
-pub trait Producer {
+pub trait Producer: Downcast {
     fn produce(
         &self,
         value: &Value,
@@ -22,3 +24,5 @@ pub trait Producer {
         device_address: u16,
     ) -> Option<Packet>;
 }
+
+impl_downcast!(Producer);

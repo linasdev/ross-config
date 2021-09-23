@@ -10,3 +10,7 @@ readme = "README.md"
 
 [dependencies]
 ross-protocol = "1.14.0"
+
+[dependencies.downcast-rs]
+version = "1.2.0"
+default-features = false

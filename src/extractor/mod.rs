@@ -1,3 +1,5 @@
+use downcast_rs::{Downcast, impl_downcast};
+
 use ross_protocol::packet::Packet;
 
 use crate::Value;
@@ -11,6 +13,8 @@ pub use event_code_extractor::*;
 pub const NONE_EXTRACTOR_CODE: u16 = 0x0000;
 pub const EVENT_CODE_EXTRACTOR_CODE: u16 = 0x0001;
 
-pub trait Extractor {
+pub trait Extractor: Downcast {
     fn extract(&self, packet: &Packet) -> Value;
 }
+
+impl_downcast!(Extractor);
