@@ -5,6 +5,7 @@ pub mod filter;
 pub mod matcher;
 pub mod producer;
 pub mod state;
+pub mod event_processor;
 
 #[cfg(test)]
 mod test;
