@@ -5,6 +5,7 @@ use crate::state::StateManager;
 use crate::Value;
 
 #[repr(C)]
+#[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
 pub struct NoneProducer {}
 
 impl NoneProducer {
@@ -13,6 +14,7 @@ impl NoneProducer {
     }
 }
 
+#[cfg_attr(feature = "std", typetag::serde(name = "none_producer"))]
 impl Producer for NoneProducer {
     fn produce(
         &self,

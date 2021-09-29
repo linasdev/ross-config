@@ -3,6 +3,7 @@ use crate::state::StateManager;
 use crate::Value;
 
 #[repr(C)]
+#[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
 pub struct U32IsEqualStateFilter {
     state_index: u32,
     value: u32,
@@ -14,6 +15,7 @@ impl U32IsEqualStateFilter {
     }
 }
 
+#[cfg_attr(feature = "std", typetag::serde(name = "u32_is_equal_state_filter"))]
 impl Filter for U32IsEqualStateFilter {
     fn filter(&mut self, value: &Value, state_manager: &mut StateManager) -> bool {
         match value {
@@ -37,6 +39,7 @@ impl Filter for U32IsEqualStateFilter {
 }
 
 #[repr(C)]
+#[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
 pub struct U32IncrementStateFilter {
     state_index: u32,
 }
@@ -47,6 +50,7 @@ impl U32IncrementStateFilter {
     }
 }
 
+#[cfg_attr(feature = "std", typetag::serde(name = "u32_increment_state_filter"))]
 impl Filter for U32IncrementStateFilter {
     fn filter(&mut self, value: &Value, state_manager: &mut StateManager) -> bool {
         match value {
@@ -72,6 +76,7 @@ impl Filter for U32IncrementStateFilter {
 }
 
 #[repr(C)]
+#[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
 pub struct U32SetStateFilter {
     state_index: u32,
     value: u32,
@@ -83,6 +88,7 @@ impl U32SetStateFilter {
     }
 }
 
+#[cfg_attr(feature = "std", typetag::serde(name = "u32_set_state_filter"))]
 impl Filter for U32SetStateFilter {
     fn filter(&mut self, value: &Value, state_manager: &mut StateManager) -> bool {
         match value {

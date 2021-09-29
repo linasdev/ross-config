@@ -7,6 +7,7 @@ use crate::state::StateManager;
 use crate::Value;
 
 #[repr(C)]
+#[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
 pub struct BcmChangeBrightnessStateProducer {
     bcm_address: u16,
     channel: u8,
@@ -23,6 +24,7 @@ impl BcmChangeBrightnessStateProducer {
     }
 }
 
+#[cfg_attr(feature = "std", typetag::serde(name = "bcm_change_brightness_state_producer"))]
 impl Producer for BcmChangeBrightnessStateProducer {
     fn produce(
         &self,

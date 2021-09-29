@@ -13,6 +13,7 @@ pub use event_code_extractor::*;
 pub const NONE_EXTRACTOR_CODE: u16 = 0x0000;
 pub const EVENT_CODE_EXTRACTOR_CODE: u16 = 0x0001;
 
+#[cfg_attr(feature = "std", typetag::serde(tag = "type"))]
 pub trait Extractor: Downcast {
     fn extract(&self, packet: &Packet) -> Value;
 }

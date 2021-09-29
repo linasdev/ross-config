@@ -23,6 +23,7 @@ pub const FLIP_FLOP_FILTER_CODE: u16 = 0x0005;
 pub const COUNT_FILTER_CODE: u16 = 0x0006;
 pub const COUNT_STATE_FILTER_CODE: u16 = 0x0007;
 
+#[cfg_attr(feature = "std", typetag::serde(tag = "type"))]
 pub trait Filter: Downcast {
     fn filter(&mut self, value: &Value, state_manager: &mut StateManager) -> bool;
 }

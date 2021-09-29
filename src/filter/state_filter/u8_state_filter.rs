@@ -3,6 +3,7 @@ use crate::state::StateManager;
 use crate::Value;
 
 #[repr(C)]
+#[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
 pub struct U8IncrementStateFilter {
     state_index: u32,
 }
@@ -13,6 +14,7 @@ impl U8IncrementStateFilter {
     }
 }
 
+#[cfg_attr(feature = "std", typetag::serde(name = "u8_increment_state_filter"))]
 impl Filter for U8IncrementStateFilter {
     fn filter(&mut self, value: &Value, state_manager: &mut StateManager) -> bool {
         match value {

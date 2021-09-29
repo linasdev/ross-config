@@ -17,6 +17,7 @@ pub const NONE_PRODUCER_CODE: u16 = 0x0000;
 pub const BCM_CHANGE_BRIGHTNESS_PRODUCER_CODE: u16 = 0x0001;
 pub const BCM_CHANGE_BRIGHTNESS_STATE_PRODUCER_CODE: u16 = 0x0002;
 
+#[cfg_attr(feature = "std", typetag::serde(tag = "type"))]
 pub trait Producer: Downcast {
     fn produce(
         &self,
