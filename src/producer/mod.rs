@@ -1,3 +1,4 @@
+use core::fmt::Debug;
 use downcast_rs::{Downcast, impl_downcast};
 
 use ross_protocol::packet::Packet;
@@ -28,3 +29,9 @@ pub trait Producer: Downcast {
 }
 
 impl_downcast!(Producer);
+
+impl Debug for dyn Producer {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "Producer")
+    }
+}

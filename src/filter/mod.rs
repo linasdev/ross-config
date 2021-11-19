@@ -1,3 +1,4 @@
+use core::fmt::Debug;
 use downcast_rs::{Downcast, impl_downcast};
 
 use crate::state::StateManager;
@@ -29,3 +30,9 @@ pub trait Filter: Downcast {
 }
 
 impl_downcast!(Filter);
+
+impl Debug for dyn Filter {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "Filter")
+    }
+}

@@ -1,3 +1,4 @@
+use core::fmt::Debug;
 use downcast_rs::{Downcast, impl_downcast};
 
 use ross_protocol::packet::Packet;
@@ -19,3 +20,9 @@ pub trait Extractor: Downcast {
 }
 
 impl_downcast!(Extractor);
+
+impl Debug for dyn Extractor {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "Extractor")
+    }
+}
