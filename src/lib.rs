@@ -27,6 +27,6 @@ pub enum Value {
 
 #[derive(Debug)]
 pub struct Config {
-    initial_state: BTreeMap<u32, Value>,
-    event_processors: Vec<EventProcessor>,
+    pub initial_state: BTreeMap<u32, Value>,
+    pub event_processors: Vec<EventProcessor>,
 }
