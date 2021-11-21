@@ -1,30 +1,23 @@
 extern crate alloc;
 
-use alloc::vec;
-use alloc::vec::Vec;
+use alloc::collections::BTreeMap;
 
 use crate::Value;
 
 pub struct StateManager {
-    state: Vec<Value>,
+    state: BTreeMap<u32, Value>,
 }
 
 impl StateManager {
     pub fn new() -> Self {
-        Self { state: vec![] }
+        Self { state: BTreeMap::new() }
     }
 
-    pub fn add_state(&mut self, value: Value) -> u32 {
-        self.state.push(value);
-
-        return self.state.len() as u32 - 1;
-    }
-
-    pub fn get_value(&self, index: u32) -> &Value {
-        &self.state[index as usize]
+    pub fn get_value(&self, index: u32) -> Option<&Value> {
+        self.state.get(&index)
     }
 
     pub fn set_value(&mut self, index: u32, value: Value) {
-        self.state[index as usize] = value;
+        self.state.insert(index, value);
     }
 }

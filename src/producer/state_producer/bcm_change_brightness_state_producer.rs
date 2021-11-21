@@ -33,7 +33,10 @@ impl Producer for BcmChangeBrightnessStateProducer {
         device_address: u16,
     ) -> Option<Packet> {
         let current_value = *match state_manager.get_value(self.state_index) {
-            Value::U8(value) => value,
+            Some(Value::U8(value)) => value,
+            None => {
+                panic!("No state value provided for bcm change brightness state producer.");
+            }
             _ => {
                 panic!("Wrong state value provided for bcm change brightness state producer.");
             }

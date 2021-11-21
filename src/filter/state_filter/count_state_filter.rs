@@ -31,7 +31,10 @@ impl Filter for CountStateFilter {
         let current_state = state_manager.get_value(self.state_index);
 
         let current_state = match current_state {
-            Value::U32(value) => value + 1,
+            Some(Value::U32(value)) => value + 1,
+            None => {
+                panic!("No state value provided for count state filter.");
+            },
             _ => {
                 panic!("Wrong state value provided for count state filter.");
             }

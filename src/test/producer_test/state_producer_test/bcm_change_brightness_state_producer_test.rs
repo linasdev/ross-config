@@ -35,9 +35,9 @@ fn bcm_change_brightness_state_producer_test() {
     ];
 
     let mut state_manager = StateManager::new();
-    let state_index = state_manager.add_state(Value::U8(BRIGHTNESS));
+    state_manager.set_value(0, Value::U8(BRIGHTNESS));
 
-    let producer = BcmChangeBrightnessStateProducer::new(BCM_ADDRESS, CHANNEL, state_index);
+    let producer = BcmChangeBrightnessStateProducer::new(BCM_ADDRESS, CHANNEL, 0);
 
     assert_eq!(
         producer.produce(&Value::None, &state_manager, DEVICE_ADDRESS),

@@ -27,7 +27,10 @@ impl Filter for U8IncrementStateFilter {
         let current_state = state_manager.get_value(self.state_index);
 
         let current_state = *match current_state {
-            Value::U8(value) => value,
+            Some(Value::U8(value)) => value,
+            None => {
+                panic!("No state value provided for u8 increment state filter.");
+            }
             _ => {
                 panic!("Wrong state value provided for u8 increment state filter.");
             }
