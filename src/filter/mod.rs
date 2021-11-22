@@ -25,14 +25,8 @@ pub const COUNT_FILTER_CODE: u16 = 0x0006;
 pub const COUNT_STATE_FILTER_CODE: u16 = 0x0007;
 
 #[cfg_attr(feature = "std", typetag::serde(tag = "type"))]
-pub trait Filter: Downcast {
+pub trait Filter: Downcast + Debug {
     fn filter(&mut self, value: &Value, state_manager: &mut StateManager) -> bool;
 }
 
 impl_downcast!(Filter);
-
-impl Debug for dyn Filter {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        write!(f, "Filter")
-    }
-}

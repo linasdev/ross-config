@@ -3,6 +3,7 @@ use ross_protocol::packet::Packet;
 use crate::extractor::{Extractor, Value};
 
 #[repr(C)]
+#[derive(Debug)]
 #[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
 pub struct NoneExtractor {}
 

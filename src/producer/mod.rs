@@ -19,7 +19,7 @@ pub const BCM_CHANGE_BRIGHTNESS_PRODUCER_CODE: u16 = 0x0001;
 pub const BCM_CHANGE_BRIGHTNESS_STATE_PRODUCER_CODE: u16 = 0x0002;
 
 #[cfg_attr(feature = "std", typetag::serde(tag = "type"))]
-pub trait Producer: Downcast {
+pub trait Producer: Downcast + Debug {
     fn produce(
         &self,
         value: &Value,
@@ -29,9 +29,3 @@ pub trait Producer: Downcast {
 }
 
 impl_downcast!(Producer);
-
-impl Debug for dyn Producer {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        write!(f, "Producer")
-    }
-}

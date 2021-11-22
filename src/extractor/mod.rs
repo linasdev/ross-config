@@ -15,14 +15,8 @@ pub const NONE_EXTRACTOR_CODE: u16 = 0x0000;
 pub const EVENT_CODE_EXTRACTOR_CODE: u16 = 0x0001;
 
 #[cfg_attr(feature = "std", typetag::serde(tag = "type"))]
-pub trait Extractor: Downcast {
+pub trait Extractor: Downcast + Debug {
     fn extract(&self, packet: &Packet) -> Value;
 }
 
 impl_downcast!(Extractor);
-
-impl Debug for dyn Extractor {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        write!(f, "Extractor")
-    }
-}

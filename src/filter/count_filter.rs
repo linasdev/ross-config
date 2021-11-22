@@ -3,6 +3,7 @@ use crate::state::StateManager;
 use crate::Value;
 
 #[repr(C)]
+#[derive(Debug)]
 #[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
 pub struct CountFilter {
     state: u32,
