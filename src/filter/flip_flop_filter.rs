@@ -4,7 +4,6 @@ use crate::Value;
 
 #[repr(C)]
 #[derive(Debug)]
-#[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
 pub struct FlipFlopFilter {
     state: bool,
 }
@@ -15,7 +14,6 @@ impl FlipFlopFilter {
     }
 }
 
-#[cfg_attr(feature = "std", typetag::serde(name = "flip_flop_filter"))]
 impl Filter for FlipFlopFilter {
     fn filter(&mut self, value: &Value, _state_manager: &mut StateManager) -> bool {
         match value {

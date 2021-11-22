@@ -8,7 +8,6 @@ use crate::extractor::Extractor;
 use crate::filter::Filter;
 use crate::state::StateManager;
 
-#[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug)]
 pub struct Matcher {
     pub extractor: Box<dyn Extractor>,

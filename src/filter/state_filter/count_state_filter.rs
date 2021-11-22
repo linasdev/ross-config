@@ -4,7 +4,6 @@ use crate::Value;
 
 #[repr(C)]
 #[derive(Debug)]
-#[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
 pub struct CountStateFilter {
     state_index: u32,
     required_state: u32,
@@ -19,7 +18,6 @@ impl CountStateFilter {
     }
 }
 
-#[cfg_attr(feature = "std", typetag::serde(name = "count_state_filter"))]
 impl Filter for CountStateFilter {
     fn filter(&mut self, value: &Value, state_manager: &mut StateManager) -> bool {
         match value {

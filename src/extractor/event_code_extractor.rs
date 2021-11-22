@@ -6,7 +6,6 @@ use crate::extractor::{Extractor, Value};
 
 #[repr(C)]
 #[derive(Debug)]
-#[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
 pub struct EventCodeExtractor {}
 
 impl EventCodeExtractor {
@@ -15,7 +14,6 @@ impl EventCodeExtractor {
     }
 }
 
-#[cfg_attr(feature = "std", typetag::serde(name = "event_code_extractor"))]
 impl Extractor for EventCodeExtractor {
     fn extract(&self, packet: &Packet) -> Value {
         if packet.data.len() < 2 {
