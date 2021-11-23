@@ -9,7 +9,7 @@ repository = "https://github.com/linasdev/ross-config"
 readme = "README.md"
 
 [dependencies]
-ross-protocol = "1.16.0"
+ross-protocol = "1.17.0"
 
 [dependencies.downcast-rs]
 version = "1.2.0"
