@@ -1,5 +1,5 @@
 use ross_protocol::convert_packet::ConvertPacket;
-use ross_protocol::event::bcm_event::BcmChangeBrightnessEvent;
+use ross_protocol::event::bcm::BcmChangeBrightnessEvent;
 use ross_protocol::packet::Packet;
 
 use crate::producer::Producer;
