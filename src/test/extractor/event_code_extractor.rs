@@ -23,9 +23,9 @@ fn event_code_extractor_test() {
         ((BCM_CHANGE_BRIGHTNESS_EVENT_CODE >> 0) & 0xff) as u8, // event code
     ];
 
-    let extractor = NoneExtractor::new();
+    let extractor = EventCodeExtractor::new();
 
-    assert_eq!(extractor.extract(&packet), Value::None);
+    assert_eq!(extractor.extract(&packet), Value::U16(BCM_CHANGE_BRIGHTNESS_EVENT_CODE));
 }
 
 #[test]
@@ -34,7 +34,7 @@ fn event_code_extractor_wrong_format_test() {
     let mut packet = PACKET;
     packet.data = vec![((BCM_CHANGE_BRIGHTNESS_EVENT_CODE >> 8) & 0xff) as u8];
 
-    let extractor = NoneExtractor::new();
+    let extractor = EventCodeExtractor::new();
 
     extractor.extract(&packet);
 }
