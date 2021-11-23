@@ -9,10 +9,10 @@ use core::mem::{size_of, transmute_copy};
 
 use crate::event_processor::EventProcessor;
 use crate::extractor::*;
-use crate::filter::state_filter::*;
+use crate::filter::state::*;
 use crate::filter::*;
 use crate::matcher::Matcher;
-use crate::producer::state_producer::*;
+use crate::producer::state::*;
 use crate::producer::*;
 use crate::Value;
 

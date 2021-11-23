@@ -9,7 +9,7 @@ use crate::event_processor::EventProcessor;
 use crate::extractor::{EventCodeExtractor, NoneExtractor};
 use crate::filter::U16IsEqualFilter;
 use crate::matcher::Matcher;
-use crate::producer::state_producer::BcmChangeBrightnessStateProducer;
+use crate::producer::state::BcmChangeBrightnessStateProducer;
 use crate::Value;
 
 #[test]

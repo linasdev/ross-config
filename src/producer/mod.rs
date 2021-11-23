@@ -6,7 +6,7 @@ use ross_protocol::packet::Packet;
 use crate::state::StateManager;
 use crate::Value;
 
-pub mod state_producer;
+pub mod state;
 
 mod bcm_change_brightness_producer;
 pub use bcm_change_brightness_producer::*;

@@ -6,7 +6,7 @@ use alloc::vec::Vec;
 use ross_protocol::event::event_code::BCM_CHANGE_BRIGHTNESS_EVENT_CODE;
 use ross_protocol::packet::Packet;
 
-use crate::producer::state_producer::*;
+use crate::producer::state::*;
 use crate::producer::Producer;
 use crate::state::StateManager;
 use crate::Value;

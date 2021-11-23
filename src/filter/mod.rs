@@ -4,7 +4,7 @@ use downcast_rs::{impl_downcast, Downcast};
 use crate::state::StateManager;
 use crate::Value;
 
-pub mod state_filter;
+pub mod state;
 
 mod u16_filter;
 pub use u16_filter::*;
