@@ -1,5 +1,5 @@
 use core::fmt::Debug;
-use downcast_rs::{Downcast, impl_downcast};
+use downcast_rs::{impl_downcast, Downcast};
 
 use ross_protocol::packet::Packet;
 

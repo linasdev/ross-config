@@ -67,7 +67,7 @@ impl Filter for U32IncrementStateFilter {
             Some(Value::U32(value)) => value,
             None => {
                 panic!("No state value provided for u32 increment state filter.");
-            },
+            }
             _ => {
                 panic!("Wrong state value provided for u32 increment state filter.");
             }

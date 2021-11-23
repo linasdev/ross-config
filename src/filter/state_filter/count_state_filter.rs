@@ -33,7 +33,7 @@ impl Filter for CountStateFilter {
             Some(Value::U32(value)) => value + 1,
             None => {
                 panic!("No state value provided for count state filter.");
-            },
+            }
             _ => {
                 panic!("Wrong state value provided for count state filter.");
             }

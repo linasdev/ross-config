@@ -10,7 +10,9 @@ pub struct StateManager {
 
 impl StateManager {
     pub fn new() -> Self {
-        Self { state: BTreeMap::new() }
+        Self {
+            state: BTreeMap::new(),
+        }
     }
 
     pub fn get_value(&self, index: u32) -> Option<&Value> {

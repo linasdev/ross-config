@@ -1,33 +1,31 @@
 extern crate alloc;
 
-use alloc::vec;
 use alloc::boxed::Box;
 use alloc::collections::BTreeMap;
+use alloc::vec;
 
-use crate::Value;
 use crate::config::{Config, ConfigSerializer, ConfigSerializerError};
 use crate::event_processor::EventProcessor;
-use crate::matcher::Matcher;
-use crate::extractor::{NoneExtractor, EventCodeExtractor};
+use crate::extractor::{EventCodeExtractor, NoneExtractor};
 use crate::filter::U16IsEqualFilter;
+use crate::matcher::Matcher;
 use crate::producer::state_producer::BcmChangeBrightnessStateProducer;
+use crate::Value;
 
 #[test]
 fn serialize_event_processor_writer_test() {
     let mut initial_state = BTreeMap::new();
     initial_state.insert(0, Value::U8(0xff));
 
-    let mut event_processors = vec!();
-    event_processors.push(
-        EventProcessor {
-            matchers: vec!(Matcher {
-                extractor: Box::new(EventCodeExtractor::new()),
-                filter: Box::new(U16IsEqualFilter::new(0xff)),
-            }),
-            extractor: Box::new(NoneExtractor::new()),
-            producer: Box::new(BcmChangeBrightnessStateProducer::new(0xff, 0xff, 0)),
-        }
-    );
+    let mut event_processors = vec![];
+    event_processors.push(EventProcessor {
+        matchers: vec![Matcher {
+            extractor: Box::new(EventCodeExtractor::new()),
+            filter: Box::new(U16IsEqualFilter::new(0xff)),
+        }],
+        extractor: Box::new(NoneExtractor::new()),
+        producer: Box::new(BcmChangeBrightnessStateProducer::new(0xff, 0xff, 0)),
+    });
 
     let config = Config {
         initial_state,
@@ -36,7 +34,7 @@ fn serialize_event_processor_writer_test() {
 
     let data = ConfigSerializer::serialize(&config).unwrap();
 
-    let expected_data = vec!(
+    let expected_data = vec![
         0x00, 0x00, 0x00, 0x01, // initial state count
         0x00, 0x00, 0x00, 0x00, // state_index
         0x01, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // state_value
@@ -50,14 +48,14 @@ fn serialize_event_processor_writer_test() {
         0xff, 0x00, // bcm_address
         0xff, 0x00, // channel
         0x00, 0x00, 0x00, 0x00, // state_index
-    );
+    ];
 
     assert_eq!(data, expected_data);
 }
 
 #[test]
 fn deserialize_config_serializer_wrong_size_test() {
-    let data = vec!();
+    let data = vec![];
 
     let err = ConfigSerializer::deserialize(&data).unwrap_err();
 
@@ -66,10 +64,10 @@ fn deserialize_config_serializer_wrong_size_test() {
 
 #[test]
 fn deserialize_config_serializer_empty_test() {
-    let data = vec!(
-        0x00, 0x00, 0x00, 0x00,  // initial state count
-        0x00, 0x00, 0x00, 0x00,  // event processor count
-    );
+    let data = vec![
+        0x00, 0x00, 0x00, 0x00, // initial state count
+        0x00, 0x00, 0x00, 0x00, // event processor count
+    ];
 
     let config = ConfigSerializer::deserialize(&data).unwrap();
 
@@ -79,7 +77,7 @@ fn deserialize_config_serializer_empty_test() {
 
 #[test]
 fn deserialize_config_serializer_test() {
-    let data = vec!(
+    let data = vec![
         0x00, 0x00, 0x00, 0x01, // initial state count
         0x00, 0x00, 0x00, 0x00, // state_index
         0x01, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // state_value
@@ -93,7 +91,7 @@ fn deserialize_config_serializer_test() {
         0xff, 0x00, // bcm_address
         0xff, 0x00, // channel
         0x00, 0x00, 0x00, 0x00, // state_index
-    );
+    ];
 
     let config = ConfigSerializer::deserialize(&data).unwrap();
 

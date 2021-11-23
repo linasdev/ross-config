@@ -1,10 +1,10 @@
 extern crate alloc;
 
-use alloc::vec::Vec;
 use alloc::boxed::Box;
+use alloc::vec::Vec;
 
-use crate::matcher::Matcher;
 use crate::extractor::Extractor;
+use crate::matcher::Matcher;
 use crate::producer::Producer;
 
 #[derive(Debug)]
