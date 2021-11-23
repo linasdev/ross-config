@@ -1,4 +1,4 @@
-mod config_test;
-mod extractor_test;
-mod filter_test;
-mod producer_test;
+mod config;
+mod extractor;
+mod filter;
+mod producer;

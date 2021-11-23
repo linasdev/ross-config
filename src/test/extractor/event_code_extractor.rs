@@ -1,8 +1,13 @@
-use crate::extractor::*;
-use crate::Value;
+extern crate alloc;
+
+use alloc::vec;
+use alloc::vec::Vec;
 
 use ross_protocol::event::event_code::BCM_CHANGE_BRIGHTNESS_EVENT_CODE;
 use ross_protocol::packet::Packet;
+
+use crate::extractor::*;
+use crate::Value;
 
 const PACKET: Packet = Packet {
     is_error: false,
