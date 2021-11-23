@@ -25,7 +25,10 @@ fn event_code_extractor_test() {
 
     let extractor = EventCodeExtractor::new();
 
-    assert_eq!(extractor.extract(&packet), Value::U16(BCM_CHANGE_BRIGHTNESS_EVENT_CODE));
+    assert_eq!(
+        extractor.extract(&packet),
+        Value::U16(BCM_CHANGE_BRIGHTNESS_EVENT_CODE)
+    );
 }
 
 #[test]
