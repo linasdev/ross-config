@@ -8,7 +8,7 @@ use ross_protocol::packet::Packet;
 
 use crate::producer::*;
 use crate::state::StateManager;
-use crate::{Value, ReferenceValue};
+use crate::{ReferenceValue, Value};
 
 const DEVICE_ADDRESS: u16 = 0x0123;
 const RECEIVER_ADDRESS: u16 = 0xffff;
@@ -41,7 +41,11 @@ fn packet_producer_test() {
     let producer = PacketProducer::new(RECEIVER_ADDRESS);
 
     assert_eq!(
-        producer.produce(Value::Reference(ReferenceValue::Packet(&packet)), &state_manager, DEVICE_ADDRESS),
+        producer.produce(
+            Value::Reference(ReferenceValue::Packet(&packet)),
+            &state_manager,
+            DEVICE_ADDRESS
+        ),
         Some(expected_packet)
     );
 }

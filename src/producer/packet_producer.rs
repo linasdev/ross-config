@@ -2,7 +2,7 @@ use ross_protocol::packet::Packet;
 
 use crate::producer::Producer;
 use crate::state::StateManager;
-use crate::{Value, ReferenceValue};
+use crate::{ReferenceValue, Value};
 
 #[repr(C)]
 #[derive(Debug)]
@@ -12,9 +12,7 @@ pub struct PacketProducer {
 
 impl PacketProducer {
     pub fn new(receiver_address: u16) -> Self {
-        Self {
-            receiver_address
-        }
+        Self { receiver_address }
     }
 }
 
@@ -34,7 +32,7 @@ impl Producer for PacketProducer {
 
         let mut packet = packet.clone();
         packet.device_address = self.receiver_address;
-        
+
         Some(packet)
     }
 }

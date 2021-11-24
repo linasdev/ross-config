@@ -228,12 +228,7 @@ impl ConfigSerializer {
             data,
             extractor
         );
-        impl_item_write!(
-            PACKET_EXTRACTOR_CODE,
-            PacketExtractor,
-            data,
-            extractor
-        );
+        impl_item_write!(PACKET_EXTRACTOR_CODE, PacketExtractor, data, extractor);
         Err(ConfigSerializerError::UnknownExtractor)
     }
 
@@ -378,12 +373,7 @@ impl ConfigSerializer {
             data,
             producer
         );
-        impl_item_write!(
-            PACKET_PRODUCER_CODE,
-            PacketProducer,
-            data,
-            producer
-        );
+        impl_item_write!(PACKET_PRODUCER_CODE, PacketProducer, data, producer);
         Err(ConfigSerializerError::UnknownProducer)
     }
 }

@@ -1,7 +1,7 @@
 use ross_protocol::packet::Packet;
 
 use crate::extractor::Extractor;
-use crate::{Value, ReferenceValue};
+use crate::{ReferenceValue, Value};
 
 #[repr(C)]
 #[derive(Debug)]
