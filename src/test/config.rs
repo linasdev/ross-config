@@ -13,7 +13,7 @@ use crate::producer::state::BcmChangeBrightnessStateProducer;
 use crate::Value;
 
 #[test]
-fn serialize_event_processor_writer_test() {
+fn serialize_config_serializer_test() {
     let mut initial_state = BTreeMap::new();
     initial_state.insert(0, Value::U8(0xff));
 
