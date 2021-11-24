@@ -21,6 +21,10 @@ fn packet_extractor_test() {
     packet.data = vec![
         ((BCM_CHANGE_BRIGHTNESS_EVENT_CODE >> 8) & 0xff) as u8, // event code
         ((BCM_CHANGE_BRIGHTNESS_EVENT_CODE >> 0) & 0xff) as u8, // event code
+        0x01,                                                   // transmitter_address
+        0x23,                                                   // transmitter_address
+        0x45,                                                   // channel
+        0x67,                                                   // brightness
     ];
 
     let extractor = PacketExtractor::new();
