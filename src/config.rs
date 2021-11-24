@@ -351,6 +351,13 @@ impl ConfigSerializer {
             offset,
             producer_code
         );
+        impl_item_read!(
+            PACKET_PRODUCER_CODE,
+            PacketProducer,
+            data,
+            offset,
+            producer_code
+        );
         Err(ConfigSerializerError::UnknownProducer)
     }
 
@@ -368,6 +375,12 @@ impl ConfigSerializer {
         impl_item_write!(
             BCM_CHANGE_BRIGHTNESS_STATE_PRODUCER_CODE,
             BcmChangeBrightnessStateProducer,
+            data,
+            producer
+        );
+        impl_item_write!(
+            PACKET_PRODUCER_CODE,
+            PacketProducer,
             data,
             producer
         );
