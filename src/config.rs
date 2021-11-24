@@ -207,6 +207,13 @@ impl ConfigSerializer {
             offset,
             extractor_code
         );
+        impl_item_read!(
+            PACKET_EXTRACTOR_CODE,
+            PacketExtractor,
+            data,
+            offset,
+            extractor_code
+        );
         Err(ConfigSerializerError::UnknownExtractor)
     }
 
@@ -218,6 +225,12 @@ impl ConfigSerializer {
         impl_item_write!(
             EVENT_CODE_EXTRACTOR_CODE,
             EventCodeExtractor,
+            data,
+            extractor
+        );
+        impl_item_write!(
+            PACKET_EXTRACTOR_CODE,
+            PacketExtractor,
             data,
             extractor
         );

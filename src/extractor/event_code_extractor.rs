@@ -2,7 +2,8 @@ use core::convert::TryInto;
 
 use ross_protocol::packet::Packet;
 
-use crate::extractor::{Extractor, Value};
+use crate::extractor::Extractor;
+use crate::Value;
 
 #[repr(C)]
 #[derive(Debug)]
@@ -15,7 +16,7 @@ impl EventCodeExtractor {
 }
 
 impl Extractor for EventCodeExtractor {
-    fn extract(&self, packet: &Packet) -> Value {
+    fn extract<'a>(&self, packet: &'a Packet) -> Value<'a> {
         if packet.data.len() < 2 {
             panic!("Wrong packet format provided for event code extractor.");
         }

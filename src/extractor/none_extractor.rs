@@ -1,6 +1,7 @@
 use ross_protocol::packet::Packet;
 
-use crate::extractor::{Extractor, Value};
+use crate::extractor::Extractor;
+use crate::Value;
 
 #[repr(C)]
 #[derive(Debug)]
@@ -13,7 +14,7 @@ impl NoneExtractor {
 }
 
 impl Extractor for NoneExtractor {
-    fn extract(&self, _packet: &Packet) -> Value {
+    fn extract<'a>(&self, _packet: &'a Packet) -> Value<'a> {
         Value::None
     }
 }
