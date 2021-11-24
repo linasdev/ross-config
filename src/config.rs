@@ -75,14 +75,15 @@ macro_rules! write_integer_to_vec {
 }
 
 #[derive(Debug)]
-pub struct Config {
-    pub initial_state: BTreeMap<u32, Value>,
+pub struct Config<'a> {
+    pub initial_state: BTreeMap<u32, Value<'a>>,
     pub event_processors: Vec<EventProcessor>,
 }
 
 #[derive(Debug, PartialEq)]
 pub enum ConfigSerializerError {
     WrongSize,
+    TriedToSaveReferenceValue,
     UnknownExtractor,
     UnknownFilter,
     UnknownProducer,
@@ -98,6 +99,10 @@ impl ConfigSerializer {
 
         for state in config.initial_state.iter() {
             write_integer_to_vec!(data, *state.0, u32);
+
+            if let Value::Reference(_) = state.1 {
+                return Err(ConfigSerializerError::TriedToSaveReferenceValue);
+            }
 
             unsafe {
                 for byte in transmute_copy::<Value, [u8; size_of::<Value>()]>(state.1).iter() {

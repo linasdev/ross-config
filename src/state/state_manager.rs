@@ -4,11 +4,11 @@ use alloc::collections::BTreeMap;
 
 use crate::Value;
 
-pub struct StateManager {
-    state: BTreeMap<u32, Value>,
+pub struct StateManager<'a> {
+    state: BTreeMap<u32, Value<'a>>,
 }
 
-impl StateManager {
+impl<'a> StateManager<'a> {
     pub fn new() -> Self {
         Self {
             state: BTreeMap::new(),
@@ -19,7 +19,7 @@ impl StateManager {
         self.state.get(&index)
     }
 
-    pub fn set_value(&mut self, index: u32, value: Value) {
+    pub fn set_value(&mut self, index: u32, value: Value<'a>) {
         self.state.insert(index, value);
     }
 }
