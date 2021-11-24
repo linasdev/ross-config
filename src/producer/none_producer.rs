@@ -17,7 +17,7 @@ impl NoneProducer {
 impl Producer for NoneProducer {
     fn produce(
         &self,
-        _value: &Value,
+        _value: Value,
         _state_manager: &StateManager,
         _device_address: u16,
     ) -> Option<Packet> {

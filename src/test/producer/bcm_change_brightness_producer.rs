@@ -38,7 +38,7 @@ fn bcm_change_brightness_producer_test() {
     let producer = BcmChangeBrightnessProducer::new(BCM_ADDRESS, CHANNEL, BRIGHTNESS);
 
     assert_eq!(
-        producer.produce(&Value::None, &state_manager, DEVICE_ADDRESS),
+        producer.produce(Value::None, &state_manager, DEVICE_ADDRESS),
         Some(packet)
     );
 }

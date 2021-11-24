@@ -27,7 +27,7 @@ impl BcmChangeBrightnessStateProducer {
 impl Producer for BcmChangeBrightnessStateProducer {
     fn produce(
         &self,
-        _value: &Value,
+        _value: Value,
         state_manager: &StateManager,
         device_address: u16,
     ) -> Option<Packet> {

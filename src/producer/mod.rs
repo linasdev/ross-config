@@ -21,7 +21,7 @@ pub const BCM_CHANGE_BRIGHTNESS_STATE_PRODUCER_CODE: u16 = 0x0002;
 pub trait Producer: Downcast + Debug {
     fn produce(
         &self,
-        value: &Value,
+        value: Value,
         state_manager: &StateManager,
         device_address: u16,
     ) -> Option<Packet>;
