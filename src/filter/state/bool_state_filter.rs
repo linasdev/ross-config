@@ -71,48 +71,54 @@ impl Filter for BoolSetStateFilter {
 #[cfg(test)]
 mod tests {
     use super::*;
-    
+
     const VALUE_1: u8 = 0xff;
 
     #[test]
     fn bool_is_equal_state_filter_values_equal_test() {
         let mut state_manager = StateManager::new();
         state_manager.set_value(0, StateValue::Bool(false));
-    
+
         let mut filter = BoolIsEqualStateFilter::new(0, false);
-    
-        assert_eq!(filter.filter(&ExtractorValue::None, &mut state_manager), true);
+
+        assert_eq!(
+            filter.filter(&ExtractorValue::None, &mut state_manager),
+            true
+        );
     }
-    
+
     #[test]
     fn bool_is_equal_state_filter_values_not_equal_test() {
         let mut state_manager = StateManager::new();
         state_manager.set_value(0, StateValue::Bool(false));
-    
+
         let mut filter = BoolIsEqualStateFilter::new(0, true);
-    
-        assert_eq!(filter.filter(&ExtractorValue::None, &mut state_manager), false);
+
+        assert_eq!(
+            filter.filter(&ExtractorValue::None, &mut state_manager),
+            false
+        );
     }
-    
+
     #[test]
     #[should_panic(expected = "Wrong value provided for bool is equal state filter.")]
     fn bool_is_equal_state_filter_value_has_bad_type_test() {
         let mut state_manager = StateManager::new();
         state_manager.set_value(0, StateValue::Bool(false));
-    
+
         let mut filter = BoolIsEqualStateFilter::new(0, false);
-    
+
         filter.filter(&ExtractorValue::U8(VALUE_1), &mut state_manager);
     }
-    
+
     #[test]
     #[should_panic(expected = "Wrong state value provided for bool is equal state filter.")]
     fn bool_is_equal_state_filter_state_value_has_bad_type_test() {
         let mut state_manager = StateManager::new();
         state_manager.set_value(0, StateValue::U8(VALUE_1));
-    
+
         let mut filter = BoolIsEqualStateFilter::new(0, false);
-    
+
         filter.filter(&ExtractorValue::None, &mut state_manager);
     }
 
@@ -120,21 +126,27 @@ mod tests {
     fn bool_set_state_filter_test() {
         let mut state_manager = StateManager::new();
         state_manager.set_value(0, StateValue::Bool(true));
-    
+
         let mut filter = BoolSetStateFilter::new(0, false);
-    
-        assert_eq!(filter.filter(&ExtractorValue::None, &mut state_manager), true);
-        assert_eq!(*state_manager.get_value(0).unwrap(), StateValue::Bool(false));
+
+        assert_eq!(
+            filter.filter(&ExtractorValue::None, &mut state_manager),
+            true
+        );
+        assert_eq!(
+            *state_manager.get_value(0).unwrap(),
+            StateValue::Bool(false)
+        );
     }
-    
+
     #[test]
     #[should_panic(expected = "Wrong value provided for bool set state filter.")]
     fn bool_set_state_filter_value_has_bad_type_test() {
         let mut state_manager = StateManager::new();
         state_manager.set_value(0, StateValue::Bool(false));
-    
+
         let mut filter = BoolSetStateFilter::new(0, false);
-    
+
         filter.filter(&ExtractorValue::U8(VALUE_1), &mut state_manager);
-    }    
+    }
 }

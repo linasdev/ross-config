@@ -6,7 +6,7 @@ use alloc::vec;
 use alloc::vec::Vec;
 use core::convert::TryInto;
 use core::mem::{size_of, transmute_copy};
-use postcard::{to_allocvec, from_bytes};
+use postcard::{from_bytes, to_allocvec};
 
 use crate::event_processor::EventProcessor;
 use crate::extractor::*;
@@ -326,7 +326,12 @@ impl ConfigSerializer {
         impl_item_write!(FLIP_FLOP_FILTER_CODE, FlipFlopFilter, data, filter);
         impl_item_write!(COUNT_FILTER_CODE, CountFilter, data, filter);
         impl_item_write!(COUNT_STATE_FILTER_CODE, CountStateFilter, data, filter);
-        impl_item_write!(BOOL_IS_EQUAL_STATE_FILTER_CODE, BoolIsEqualStateFilter, data, filter);
+        impl_item_write!(
+            BOOL_IS_EQUAL_STATE_FILTER_CODE,
+            BoolIsEqualStateFilter,
+            data,
+            filter
+        );
         impl_item_write!(BOOL_SET_STATE_FILTER_CODE, BoolSetStateFilter, data, filter);
         Err(ConfigSerializerError::UnknownFilter)
     }
@@ -424,7 +429,7 @@ mod tests {
         let expected_data = vec![
             0x00, 0x00, 0x00, 0x01, // initial state count
             0x00, 0x00, 0x00, 0x00, // state_index
-            0x00, 0x00, 0x00, 0x02,  // state_value len
+            0x00, 0x00, 0x00, 0x02, // state_value len
             0x00, 0xff, // state_value
             0x00, 0x00, 0x00, 0x01, // event processor count
             0x00, 0x00, 0x00, 0x01, // matcher count

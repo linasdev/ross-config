@@ -30,9 +30,9 @@ mod tests {
     extern crate alloc;
 
     use super::*;
-    
-    use alloc::vec::Vec;
+
     use alloc::vec;
+    use alloc::vec::Vec;
 
     use ross_protocol::event::event_code::BCM_CHANGE_BRIGHTNESS_EVENT_CODE;
 
@@ -41,7 +41,7 @@ mod tests {
         device_address: 0xabab,
         data: Vec::new(),
     };
-    
+
     #[test]
     fn event_code_extractor_test() {
         let mut packet = PACKET;
@@ -53,23 +53,23 @@ mod tests {
             0x45,                                                   // channel
             0x67,                                                   // brightness
         ];
-    
+
         let extractor = EventCodeExtractor::new();
-    
+
         assert_eq!(
             extractor.extract(&packet),
             ExtractorValue::U16(BCM_CHANGE_BRIGHTNESS_EVENT_CODE)
         );
     }
-    
+
     #[test]
     #[should_panic(expected = "Wrong packet format provided for event code extractor.")]
     fn event_code_extractor_wrong_format_test() {
         let mut packet = PACKET;
         packet.data = vec![((BCM_CHANGE_BRIGHTNESS_EVENT_CODE >> 8) & 0xff) as u8];
-    
+
         let extractor = EventCodeExtractor::new();
-    
+
         extractor.extract(&packet);
     }
 }

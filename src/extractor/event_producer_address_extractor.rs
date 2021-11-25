@@ -56,10 +56,7 @@ mod tests {
 
         let extractor = EventProducerAddressExtractor::new();
 
-        assert_eq!(
-            extractor.extract(&packet),
-            ExtractorValue::U16(0x0123),
-        );
+        assert_eq!(extractor.extract(&packet), ExtractorValue::U16(0x0123),);
     }
 
     #[test]
