@@ -6,6 +6,7 @@ use alloc::vec;
 use alloc::vec::Vec;
 use core::convert::TryInto;
 use core::mem::{size_of, transmute_copy};
+use postcard::{to_allocvec, from_bytes};
 
 use crate::event_processor::EventProcessor;
 use crate::extractor::*;
@@ -83,7 +84,7 @@ pub struct Config {
 #[derive(Debug, PartialEq)]
 pub enum ConfigSerializerError {
     WrongSize,
-    TriedToSaveReferenceValue,
+    PostcardError(postcard::Error),
     UnknownExtractor,
     UnknownFilter,
     UnknownProducer,
@@ -100,10 +101,12 @@ impl ConfigSerializer {
         for state in config.initial_state.iter() {
             write_integer_to_vec!(data, *state.0, u32);
 
-            unsafe {
-                for byte in transmute_copy::<StateValue, [u8; size_of::<StateValue>()]>(state.1).iter() {
-                    data.push(*byte);
-                }
+            let serialized_state = to_allocvec(state.1)?;
+
+            write_integer_to_vec!(data, serialized_state.len() as u32, u32);
+
+            for byte in serialized_state.iter() {
+                data.push(*byte);
             }
         }
 
@@ -132,14 +135,10 @@ impl ConfigSerializer {
 
         for _ in 0..initial_state_count {
             let state_index = read_integer_from_vec!(data, offset, u32);
-            let state_value = unsafe {
-                const SIZE: usize = size_of::<StateValue>();
-                let item = transmute_copy::<[u8; SIZE], StateValue>(
-                    data[offset..offset + SIZE].try_into().unwrap(),
-                );
-                offset += SIZE;
-                item
-            };
+            let serialized_state_len = read_integer_from_vec!(data, offset, u32) as usize;
+
+            let state_value = from_bytes(&data[offset..offset + serialized_state_len])?;
+            offset += serialized_state_len;
 
             initial_state.insert(state_index, state_value);
         }
@@ -371,5 +370,11 @@ impl ConfigSerializer {
         );
         impl_item_write!(PACKET_PRODUCER_CODE, PacketProducer, data, producer);
         Err(ConfigSerializerError::UnknownProducer)
+    }
+}
+
+impl From<postcard::Error> for ConfigSerializerError {
+    fn from(err: postcard::Error) -> Self {
+        Self::PostcardError(err)
     }
 }

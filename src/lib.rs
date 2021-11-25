@@ -1,5 +1,7 @@
 #![no_std]
 
+use serde::{Serialize, Deserialize};
+
 use ross_protocol::packet::Packet;
 
 pub mod config;
@@ -13,7 +15,7 @@ pub mod state;
 #[cfg(test)]
 mod test;
 
-#[derive(Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub enum StateValue {
     U8(u8),
     U16(u16),
