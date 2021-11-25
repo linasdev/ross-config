@@ -4,7 +4,7 @@ use ross_protocol::packet::Packet;
 
 use crate::producer::Producer;
 use crate::state::StateManager;
-use crate::Value;
+use crate::ExtractorValue;
 
 #[repr(C)]
 #[derive(Debug)]
@@ -27,7 +27,7 @@ impl BcmChangeBrightnessProducer {
 impl Producer for BcmChangeBrightnessProducer {
     fn produce(
         &self,
-        _value: Value,
+        _value: ExtractorValue,
         _state_manager: &StateManager,
         device_address: u16,
     ) -> Option<Packet> {
@@ -81,7 +81,7 @@ mod tests {
         let producer = BcmChangeBrightnessProducer::new(BCM_ADDRESS, CHANNEL, BRIGHTNESS);
 
         assert_eq!(
-            producer.produce(Value::None, &state_manager, DEVICE_ADDRESS),
+            producer.produce(ExtractorValue::None, &state_manager, DEVICE_ADDRESS),
             Some(packet)
         );
     }

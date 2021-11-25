@@ -1,7 +1,7 @@
 use ross_protocol::packet::Packet;
 
 use crate::extractor::Extractor;
-use crate::Value;
+use crate::ExtractorValue;
 
 #[repr(C)]
 #[derive(Debug)]
@@ -14,8 +14,8 @@ impl NoneExtractor {
 }
 
 impl Extractor for NoneExtractor {
-    fn extract<'a>(&self, _packet: &'a Packet) -> Value<'a> {
-        Value::None
+    fn extract<'a>(&self, _packet: &'a Packet) -> ExtractorValue<'a> {
+        ExtractorValue::None
     }
 }
 
@@ -50,6 +50,6 @@ mod tests {
 
         let extractor = NoneExtractor::new();
 
-        assert_eq!(extractor.extract(&packet), Value::None);
+        assert_eq!(extractor.extract(&packet), ExtractorValue::None);
     }
 }

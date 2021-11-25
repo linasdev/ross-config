@@ -1,6 +1,6 @@
 use crate::filter::Filter;
 use crate::state::StateManager;
-use crate::Value;
+use crate::ExtractorValue;
 
 #[repr(C)]
 #[derive(Debug)]
@@ -15,9 +15,9 @@ impl U16IsEqualFilter {
 }
 
 impl Filter for U16IsEqualFilter {
-    fn filter(&mut self, value: &Value, _state_manager: &mut StateManager) -> bool {
+    fn filter(&mut self, value: &ExtractorValue, _state_manager: &mut StateManager) -> bool {
         let value = match value {
-            Value::U16(value) => value,
+            ExtractorValue::U16(value) => value,
             _ => {
                 panic!("Wrong value provided for u16 is equal filter.");
             }

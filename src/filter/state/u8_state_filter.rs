@@ -1,6 +1,6 @@
 use crate::filter::Filter;
 use crate::state::StateManager;
-use crate::Value;
+use crate::{ExtractorValue, StateValue};
 
 #[repr(C)]
 #[derive(Debug)]
@@ -15,9 +15,9 @@ impl U8IncrementStateFilter {
 }
 
 impl Filter for U8IncrementStateFilter {
-    fn filter(&mut self, value: &Value, state_manager: &mut StateManager) -> bool {
+    fn filter(&mut self, value: &ExtractorValue, state_manager: &mut StateManager) -> bool {
         match value {
-            Value::None => (),
+            ExtractorValue::None => (),
             _ => {
                 panic!("Wrong value provided for u8 increment state filter.");
             }
@@ -26,7 +26,7 @@ impl Filter for U8IncrementStateFilter {
         let current_state = state_manager.get_value(self.state_index);
 
         let current_state = *match current_state {
-            Some(Value::U8(value)) => value,
+            Some(StateValue::U8(value)) => value,
             None => {
                 panic!("No state value provided for u8 increment state filter.");
             }
@@ -35,7 +35,7 @@ impl Filter for U8IncrementStateFilter {
             }
         };
 
-        state_manager.set_value(self.state_index, Value::U8(current_state + 1));
+        state_manager.set_value(self.state_index, StateValue::U8(current_state + 1));
 
         true
     }

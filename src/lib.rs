@@ -14,15 +14,17 @@ pub mod state;
 mod test;
 
 #[derive(Debug, PartialEq)]
-pub enum Value<'a> {
+pub enum StateValue {
+    U8(u8),
+    U16(u16),
+    U32(u32),
+}
+
+#[derive(Debug, PartialEq)]
+pub enum ExtractorValue<'a> {
     None,
     U8(u8),
     U16(u16),
     U32(u32),
-    Reference(ReferenceValue<'a>),
-}
-
-#[derive(Debug, PartialEq)]
-pub enum ReferenceValue<'a> {
     Packet(&'a Packet),
 }

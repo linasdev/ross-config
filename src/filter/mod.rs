@@ -2,7 +2,7 @@ use core::fmt::Debug;
 use downcast_rs::{impl_downcast, Downcast};
 
 use crate::state::StateManager;
-use crate::Value;
+use crate::ExtractorValue;
 
 pub mod state;
 
@@ -25,7 +25,7 @@ pub const COUNT_FILTER_CODE: u16 = 0x0006;
 pub const COUNT_STATE_FILTER_CODE: u16 = 0x0007;
 
 pub trait Filter: Downcast + Debug {
-    fn filter(&mut self, value: &Value, state_manager: &mut StateManager) -> bool;
+    fn filter(&mut self, value: &ExtractorValue, state_manager: &mut StateManager) -> bool;
 }
 
 impl_downcast!(Filter);

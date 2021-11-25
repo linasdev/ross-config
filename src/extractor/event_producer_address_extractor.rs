@@ -3,7 +3,7 @@ use core::convert::TryInto;
 use ross_protocol::packet::Packet;
 
 use crate::extractor::Extractor;
-use crate::Value;
+use crate::ExtractorValue;
 
 #[repr(C)]
 #[derive(Debug)]
@@ -16,12 +16,12 @@ impl EventProducerAddressExtractor {
 }
 
 impl Extractor for EventProducerAddressExtractor {
-    fn extract<'a>(&self, packet: &'a Packet) -> Value<'a> {
+    fn extract<'a>(&self, packet: &'a Packet) -> ExtractorValue<'a> {
         if packet.data.len() < 4 {
             panic!("Wrong packet format provided for event producer address extractor.");
         }
 
-        Value::U16(u16::from_be_bytes(packet.data[2..=3].try_into().unwrap()))
+        ExtractorValue::U16(u16::from_be_bytes(packet.data[2..=3].try_into().unwrap()))
     }
 }
 
@@ -58,7 +58,7 @@ mod tests {
 
         assert_eq!(
             extractor.extract(&packet),
-            Value::U16(0x0123),
+            ExtractorValue::U16(0x0123),
         );
     }
 

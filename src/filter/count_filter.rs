@@ -1,6 +1,6 @@
 use crate::filter::Filter;
 use crate::state::StateManager;
-use crate::Value;
+use crate::ExtractorValue;
 
 #[repr(C)]
 #[derive(Debug)]
@@ -19,9 +19,9 @@ impl CountFilter {
 }
 
 impl Filter for CountFilter {
-    fn filter(&mut self, value: &Value, _state_manager: &mut StateManager) -> bool {
+    fn filter(&mut self, value: &ExtractorValue, _state_manager: &mut StateManager) -> bool {
         match value {
-            Value::None => (),
+            ExtractorValue::None => (),
             _ => {
                 panic!("Wrong value provided for count filter.");
             }

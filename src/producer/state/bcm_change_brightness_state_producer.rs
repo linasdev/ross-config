@@ -4,7 +4,7 @@ use ross_protocol::packet::Packet;
 
 use crate::producer::Producer;
 use crate::state::StateManager;
-use crate::Value;
+use crate::{ExtractorValue, StateValue};
 
 #[repr(C)]
 #[derive(Debug)]
@@ -27,12 +27,12 @@ impl BcmChangeBrightnessStateProducer {
 impl Producer for BcmChangeBrightnessStateProducer {
     fn produce(
         &self,
-        _value: Value,
+        _value: ExtractorValue,
         state_manager: &StateManager,
         device_address: u16,
     ) -> Option<Packet> {
         let current_value = *match state_manager.get_value(self.state_index) {
-            Some(Value::U8(value)) => value,
+            Some(StateValue::U8(value)) => value,
             None => {
                 panic!("No state value provided for bcm change brightness state producer.");
             }
@@ -87,12 +87,12 @@ mod tests {
         ];
 
         let mut state_manager = StateManager::new();
-        state_manager.set_value(0, Value::U8(BRIGHTNESS));
+        state_manager.set_value(0, StateValue::U8(BRIGHTNESS));
 
         let producer = BcmChangeBrightnessStateProducer::new(BCM_ADDRESS, CHANNEL, 0);
 
         assert_eq!(
-            producer.produce(Value::None, &state_manager, DEVICE_ADDRESS),
+            producer.produce(ExtractorValue::None, &state_manager, DEVICE_ADDRESS),
             Some(packet)
         );
     }

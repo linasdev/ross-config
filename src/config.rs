@@ -14,7 +14,7 @@ use crate::filter::*;
 use crate::matcher::Matcher;
 use crate::producer::state::*;
 use crate::producer::*;
-use crate::Value;
+use crate::StateValue;
 
 macro_rules! impl_item_read {
     ($item_code:expr, $item_type:ty, $data:expr, $offset:expr, $provided_code:expr) => {
@@ -75,8 +75,8 @@ macro_rules! write_integer_to_vec {
 }
 
 #[derive(Debug)]
-pub struct Config<'a> {
-    pub initial_state: BTreeMap<u32, Value<'a>>,
+pub struct Config {
+    pub initial_state: BTreeMap<u32, StateValue>,
     pub event_processors: Vec<EventProcessor>,
 }
 
@@ -100,12 +100,8 @@ impl ConfigSerializer {
         for state in config.initial_state.iter() {
             write_integer_to_vec!(data, *state.0, u32);
 
-            if let Value::Reference(_) = state.1 {
-                return Err(ConfigSerializerError::TriedToSaveReferenceValue);
-            }
-
             unsafe {
-                for byte in transmute_copy::<Value, [u8; size_of::<Value>()]>(state.1).iter() {
+                for byte in transmute_copy::<StateValue, [u8; size_of::<StateValue>()]>(state.1).iter() {
                     data.push(*byte);
                 }
             }
@@ -128,7 +124,7 @@ impl ConfigSerializer {
         Ok(data)
     }
 
-    pub fn deserialize<'a, 'b>(data: &'a Vec<u8>) -> Result<Config<'b>, ConfigSerializerError> {
+    pub fn deserialize(data: &Vec<u8>) -> Result<Config, ConfigSerializerError> {
         let mut offset = 0;
 
         let initial_state_count = read_integer_from_vec!(data, offset, u32);
@@ -137,8 +133,8 @@ impl ConfigSerializer {
         for _ in 0..initial_state_count {
             let state_index = read_integer_from_vec!(data, offset, u32);
             let state_value = unsafe {
-                const SIZE: usize = size_of::<Value>();
-                let item = transmute_copy::<[u8; SIZE], Value>(
+                const SIZE: usize = size_of::<StateValue>();
+                let item = transmute_copy::<[u8; SIZE], StateValue>(
                     data[offset..offset + SIZE].try_into().unwrap(),
                 );
                 offset += SIZE;

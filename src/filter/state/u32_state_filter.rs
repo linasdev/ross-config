@@ -1,6 +1,6 @@
 use crate::filter::Filter;
 use crate::state::StateManager;
-use crate::Value;
+use crate::{ExtractorValue, StateValue};
 
 #[repr(C)]
 #[derive(Debug)]
@@ -16,9 +16,9 @@ impl U32IsEqualStateFilter {
 }
 
 impl Filter for U32IsEqualStateFilter {
-    fn filter(&mut self, value: &Value, state_manager: &mut StateManager) -> bool {
+    fn filter(&mut self, value: &ExtractorValue, state_manager: &mut StateManager) -> bool {
         match value {
-            Value::None => (),
+            ExtractorValue::None => (),
             _ => {
                 panic!("Wrong value provided for u32 is equal state filter.");
             }
@@ -27,7 +27,7 @@ impl Filter for U32IsEqualStateFilter {
         let current_state = state_manager.get_value(self.state_index);
 
         let current_state = *match current_state {
-            Some(Value::U32(value)) => value,
+            Some(StateValue::U32(value)) => value,
             None => {
                 panic!("No state value provided for u32 is equal state filter.")
             }
@@ -53,9 +53,9 @@ impl U32IncrementStateFilter {
 }
 
 impl Filter for U32IncrementStateFilter {
-    fn filter(&mut self, value: &Value, state_manager: &mut StateManager) -> bool {
+    fn filter(&mut self, value: &ExtractorValue, state_manager: &mut StateManager) -> bool {
         match value {
-            Value::None => (),
+            ExtractorValue::None => (),
             _ => {
                 panic!("Wrong value provided for u32 increment state filter.");
             }
@@ -64,7 +64,7 @@ impl Filter for U32IncrementStateFilter {
         let current_state = state_manager.get_value(self.state_index);
 
         let current_state = *match current_state {
-            Some(Value::U32(value)) => value,
+            Some(StateValue::U32(value)) => value,
             None => {
                 panic!("No state value provided for u32 increment state filter.");
             }
@@ -73,7 +73,7 @@ impl Filter for U32IncrementStateFilter {
             }
         };
 
-        state_manager.set_value(self.state_index, Value::U32(current_state + 1));
+        state_manager.set_value(self.state_index, StateValue::U32(current_state + 1));
 
         true
     }
@@ -93,15 +93,15 @@ impl U32SetStateFilter {
 }
 
 impl Filter for U32SetStateFilter {
-    fn filter(&mut self, value: &Value, state_manager: &mut StateManager) -> bool {
+    fn filter(&mut self, value: &ExtractorValue, state_manager: &mut StateManager) -> bool {
         match value {
-            Value::None => (),
+            ExtractorValue::None => (),
             _ => {
                 panic!("Wrong value provided for u32 set state filter.");
             }
         };
 
-        state_manager.set_value(self.state_index, Value::U32(self.value));
+        state_manager.set_value(self.state_index, StateValue::U32(self.value));
 
         true
     }

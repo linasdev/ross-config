@@ -10,12 +10,12 @@ use crate::extractor::{EventCodeExtractor, NoneExtractor};
 use crate::filter::U16IsEqualFilter;
 use crate::matcher::Matcher;
 use crate::producer::state::BcmChangeBrightnessStateProducer;
-use crate::Value;
+use crate::StateValue;
 
 #[test]
 fn serialize_config_serializer_test() {
     let mut initial_state = BTreeMap::new();
-    initial_state.insert(0, Value::U8(0xff));
+    initial_state.insert(0, StateValue::U8(0xff));
 
     let mut event_processors = vec![];
     event_processors.push(EventProcessor {
@@ -98,6 +98,6 @@ fn deserialize_config_serializer_test() {
     let config = ConfigSerializer::deserialize(&data).unwrap();
 
     assert_eq!(config.initial_state.len(), 1);
-    assert_eq!(*config.initial_state.get(&0).unwrap(), Value::U8(0xff));
+    assert_eq!(*config.initial_state.get(&0).unwrap(), StateValue::U8(0xff));
     assert_eq!(config.event_processors.len(), 1);
 }

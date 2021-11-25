@@ -2,7 +2,7 @@ use ross_protocol::packet::Packet;
 
 use crate::producer::Producer;
 use crate::state::StateManager;
-use crate::{ReferenceValue, Value};
+use crate::ExtractorValue;
 
 #[repr(C)]
 #[derive(Debug)]
@@ -19,12 +19,12 @@ impl PacketProducer {
 impl Producer for PacketProducer {
     fn produce(
         &self,
-        value: Value,
+        value: ExtractorValue,
         _state_manager: &StateManager,
         _device_address: u16,
     ) -> Option<Packet> {
         let packet = match value {
-            Value::Reference(ReferenceValue::Packet(packet)) => packet,
+            ExtractorValue::Packet(packet) => packet,
             _ => {
                 panic!("Wrong value provided for packet producer.");
             }
@@ -80,7 +80,7 @@ mod tests {
 
         assert_eq!(
             producer.produce(
-                Value::Reference(ReferenceValue::Packet(&packet)),
+                ExtractorValue::Packet(&packet),
                 &state_manager,
                 DEVICE_ADDRESS
             ),

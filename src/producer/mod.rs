@@ -4,7 +4,7 @@ use downcast_rs::{impl_downcast, Downcast};
 use ross_protocol::packet::Packet;
 
 use crate::state::StateManager;
-use crate::Value;
+use crate::ExtractorValue;
 
 pub mod state;
 
@@ -25,7 +25,7 @@ pub const PACKET_PRODUCER_CODE: u16 = 0x0003;
 pub trait Producer: Downcast + Debug {
     fn produce(
         &self,
-        value: Value,
+        value: ExtractorValue,
         state_manager: &StateManager,
         device_address: u16,
     ) -> Option<Packet>;

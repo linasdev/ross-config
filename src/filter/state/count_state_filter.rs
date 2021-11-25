@@ -1,6 +1,6 @@
 use crate::filter::Filter;
 use crate::state::StateManager;
-use crate::Value;
+use crate::{ExtractorValue, StateValue};
 
 #[repr(C)]
 #[derive(Debug)]
@@ -19,9 +19,9 @@ impl CountStateFilter {
 }
 
 impl Filter for CountStateFilter {
-    fn filter(&mut self, value: &Value, state_manager: &mut StateManager) -> bool {
+    fn filter(&mut self, value: &ExtractorValue, state_manager: &mut StateManager) -> bool {
         match value {
-            Value::None => (),
+            ExtractorValue::None => (),
             _ => {
                 panic!("Wrong value provided for count state filter.");
             }
@@ -30,7 +30,7 @@ impl Filter for CountStateFilter {
         let current_state = state_manager.get_value(self.state_index);
 
         let current_state = match current_state {
-            Some(Value::U32(value)) => value + 1,
+            Some(StateValue::U32(value)) => value + 1,
             None => {
                 panic!("No state value provided for count state filter.");
             }
@@ -39,10 +39,10 @@ impl Filter for CountStateFilter {
             }
         };
 
-        state_manager.set_value(self.state_index, Value::U32(current_state));
+        state_manager.set_value(self.state_index, StateValue::U32(current_state));
 
         if current_state == self.required_state {
-            state_manager.set_value(self.state_index, Value::U32(0));
+            state_manager.set_value(self.state_index, StateValue::U32(0));
             true
         } else {
             false

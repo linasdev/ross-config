@@ -1,7 +1,7 @@
 use ross_protocol::packet::Packet;
 
 use crate::extractor::Extractor;
-use crate::{ReferenceValue, Value};
+use crate::ExtractorValue;
 
 #[repr(C)]
 #[derive(Debug)]
@@ -14,8 +14,8 @@ impl PacketExtractor {
 }
 
 impl Extractor for PacketExtractor {
-    fn extract<'a>(&self, packet: &'a Packet) -> Value<'a> {
-        Value::Reference(ReferenceValue::Packet(packet))
+    fn extract<'a>(&self, packet: &'a Packet) -> ExtractorValue<'a> {
+        ExtractorValue::Packet(packet)
     }
 }
 
@@ -52,7 +52,7 @@ mod tests {
 
         assert_eq!(
             extractor.extract(&packet),
-            Value::Reference(ReferenceValue::Packet(&packet))
+            ExtractorValue::Packet(&packet)
         );
     }
 }

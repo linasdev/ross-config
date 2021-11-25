@@ -3,7 +3,7 @@ use core::convert::TryInto;
 use ross_protocol::packet::Packet;
 
 use crate::extractor::Extractor;
-use crate::Value;
+use crate::ExtractorValue;
 
 #[repr(C)]
 #[derive(Debug)]
@@ -16,12 +16,12 @@ impl EventCodeExtractor {
 }
 
 impl Extractor for EventCodeExtractor {
-    fn extract<'a>(&self, packet: &'a Packet) -> Value<'a> {
+    fn extract<'a>(&self, packet: &'a Packet) -> ExtractorValue<'a> {
         if packet.data.len() < 2 {
             panic!("Wrong packet format provided for event code extractor.");
         }
 
-        Value::U16(u16::from_be_bytes(packet.data[0..=1].try_into().unwrap()))
+        ExtractorValue::U16(u16::from_be_bytes(packet.data[0..=1].try_into().unwrap()))
     }
 }
 
@@ -58,7 +58,7 @@ mod tests {
     
         assert_eq!(
             extractor.extract(&packet),
-            Value::U16(BCM_CHANGE_BRIGHTNESS_EVENT_CODE)
+            ExtractorValue::U16(BCM_CHANGE_BRIGHTNESS_EVENT_CODE)
         );
     }
     
