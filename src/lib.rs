@@ -12,9 +12,6 @@ pub mod matcher;
 pub mod producer;
 pub mod state;
 
-#[cfg(test)]
-mod test;
-
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub enum StateValue {
     U8(u8),
