@@ -23,6 +23,8 @@ pub const U32_SET_STATE_FILTER_CODE: u16 = 0x0004;
 pub const FLIP_FLOP_FILTER_CODE: u16 = 0x0005;
 pub const COUNT_FILTER_CODE: u16 = 0x0006;
 pub const COUNT_STATE_FILTER_CODE: u16 = 0x0007;
+pub const BOOL_IS_EQUAL_STATE_FILTER_CODE: u16 = 0x0008;
+pub const BOOL_SET_STATE_FILTER_CODE: u16 = 0x0009;
 
 pub trait Filter: Downcast + Debug {
     fn filter(&mut self, value: &ExtractorValue, state_manager: &mut StateManager) -> bool;
