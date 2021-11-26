@@ -222,6 +222,13 @@ impl ConfigSerializer {
             offset,
             extractor_code
         );
+        impl_item_read!(
+            EVENT_PRODUCER_ADDRESS_EXTRACTOR_CODE,
+            EventProducerAddressExtractor,
+            data,
+            offset,
+            extractor_code
+        );
         Err(ConfigSerializerError::UnknownExtractor)
     }
 
@@ -237,6 +244,7 @@ impl ConfigSerializer {
             extractor
         );
         impl_item_write!(PACKET_EXTRACTOR_CODE, PacketExtractor, data, extractor);
+        impl_item_write!(EVENT_PRODUCER_ADDRESS_EXTRACTOR_CODE, EventProducerAddressExtractor, data, extractor);
         Err(ConfigSerializerError::UnknownExtractor)
     }
 
@@ -418,7 +426,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn serialize_config_serializer_test() {
+    fn serialize_test() {
         let mut initial_state = BTreeMap::new();
         initial_state.insert(0, StateValue::U8(0xff));
 
@@ -463,7 +471,7 @@ mod tests {
     }
 
     #[test]
-    fn deserialize_config_serializer_wrong_size_test() {
+    fn deserialize_wrong_size_test() {
         let data = vec![];
 
         let err = ConfigSerializer::deserialize(&data).unwrap_err();
@@ -472,7 +480,7 @@ mod tests {
     }
 
     #[test]
-    fn deserialize_config_serializer_empty_test() {
+    fn deserialize_empty_test() {
         let data = vec![
             0x00, 0x00, 0x00, 0x00, // initial state count
             0x00, 0x00, 0x00, 0x00, // event processor count
@@ -485,7 +493,7 @@ mod tests {
     }
 
     #[test]
-    fn deserialize_config_serializer_test() {
+    fn deserialize_test() {
         let data = vec![
             0x00, 0x00, 0x00, 0x01, // initial state count
             0x00, 0x00, 0x00, 0x00, // state_index
