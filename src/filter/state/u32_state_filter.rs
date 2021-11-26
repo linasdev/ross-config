@@ -16,7 +16,7 @@ impl U32IsEqualStateFilter {
 }
 
 impl Filter for U32IsEqualStateFilter {
-    fn filter(&mut self, value: &ExtractorValue, state_manager: &mut StateManager) -> Result<bool, FilterError> {
+    fn filter(&mut self, _value: &ExtractorValue, state_manager: &mut StateManager) -> Result<bool, FilterError> {
         let current_state = state_manager.get_value(self.state_index);
 
         let current_state = *match current_state {
@@ -41,7 +41,7 @@ impl U32IncrementStateFilter {
 }
 
 impl Filter for U32IncrementStateFilter {
-    fn filter(&mut self, value: &ExtractorValue, state_manager: &mut StateManager) -> Result<bool, FilterError> {
+    fn filter(&mut self, _value: &ExtractorValue, state_manager: &mut StateManager) -> Result<bool, FilterError> {
         let current_state = state_manager.get_value(self.state_index);
 
         let current_state = *match current_state {
@@ -69,7 +69,7 @@ impl U32SetStateFilter {
 }
 
 impl Filter for U32SetStateFilter {
-    fn filter(&mut self, value: &ExtractorValue, state_manager: &mut StateManager) -> Result<bool, FilterError> {
+    fn filter(&mut self, _value: &ExtractorValue, state_manager: &mut StateManager) -> Result<bool, FilterError> {
         state_manager.set_value(self.state_index, StateValue::U32(self.value));
 
         Ok(true)

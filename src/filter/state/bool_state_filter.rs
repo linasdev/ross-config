@@ -16,7 +16,7 @@ impl BoolIsEqualStateFilter {
 }
 
 impl Filter for BoolIsEqualStateFilter {
-    fn filter(&mut self, value: &ExtractorValue, state_manager: &mut StateManager) -> Result<bool, FilterError> {
+    fn filter(&mut self, _value: &ExtractorValue, state_manager: &mut StateManager) -> Result<bool, FilterError> {
         let current_state = state_manager.get_value(self.state_index);
 
         let current_state = *match current_state {
@@ -42,7 +42,7 @@ impl BoolSetStateFilter {
 }
 
 impl Filter for BoolSetStateFilter {
-    fn filter(&mut self, value: &ExtractorValue, state_manager: &mut StateManager) -> Result<bool, FilterError> {
+    fn filter(&mut self, _value: &ExtractorValue, state_manager: &mut StateManager) -> Result<bool, FilterError> {
         state_manager.set_value(self.state_index, StateValue::Bool(self.value));
 
         Ok(true)

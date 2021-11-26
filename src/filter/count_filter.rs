@@ -19,7 +19,7 @@ impl CountFilter {
 }
 
 impl Filter for CountFilter {
-    fn filter(&mut self, value: &ExtractorValue, _state_manager: &mut StateManager) -> Result<bool, FilterError> {
+    fn filter(&mut self, _value: &ExtractorValue, _state_manager: &mut StateManager) -> Result<bool, FilterError> {
         let current_state = self.state + 1;
         self.state = current_state;
 
