@@ -1,6 +1,6 @@
 use ross_protocol::packet::Packet;
 
-use crate::extractor::Extractor;
+use crate::extractor::{Extractor, ExtractorError};
 use crate::ExtractorValue;
 
 #[repr(C)]
@@ -14,8 +14,8 @@ impl PacketExtractor {
 }
 
 impl Extractor for PacketExtractor {
-    fn extract<'a>(&self, packet: &'a Packet) -> ExtractorValue<'a> {
-        ExtractorValue::Packet(packet)
+    fn extract<'a>(&self, packet: &'a Packet) -> Result<ExtractorValue<'a>, ExtractorError> {
+        Ok(ExtractorValue::Packet(packet))
     }
 }
 
@@ -28,8 +28,6 @@ mod tests {
     use alloc::vec;
     use alloc::vec::Vec;
 
-    use ross_protocol::event::event_code::BCM_CHANGE_BRIGHTNESS_EVENT_CODE;
-
     const PACKET: Packet = Packet {
         is_error: false,
         device_address: 0xabab,
@@ -37,19 +35,17 @@ mod tests {
     };
 
     #[test]
-    fn packet_extractor_test() {
+    fn test() {
         let mut packet = PACKET;
         packet.data = vec![
-            ((BCM_CHANGE_BRIGHTNESS_EVENT_CODE >> 8) & 0xff) as u8, // event code
-            ((BCM_CHANGE_BRIGHTNESS_EVENT_CODE >> 0) & 0xff) as u8, // event code
-            0x01,                                                   // transmitter_address
-            0x23,                                                   // transmitter_address
-            0x45,                                                   // channel
-            0x67,                                                   // brightness
+            0x00, // event code
+            0x00, // event code
+            0x01, // transmitter address
+            0x23, // transmitter address
         ];
 
         let extractor = PacketExtractor::new();
 
-        assert_eq!(extractor.extract(&packet), ExtractorValue::Packet(&packet));
+        assert_eq!(extractor.extract(&packet), Ok(ExtractorValue::Packet(&packet)));
     }
 }

@@ -2,7 +2,7 @@ use core::convert::TryInto;
 
 use ross_protocol::packet::Packet;
 
-use crate::extractor::Extractor;
+use crate::extractor::{Extractor, ExtractorError};
 use crate::ExtractorValue;
 
 #[repr(C)]
@@ -16,12 +16,14 @@ impl EventCodeExtractor {
 }
 
 impl Extractor for EventCodeExtractor {
-    fn extract<'a>(&self, packet: &'a Packet) -> ExtractorValue<'a> {
+    fn extract<'a>(&self, packet: &'a Packet) -> Result<ExtractorValue<'a>, ExtractorError> {
         if packet.data.len() < 2 {
-            panic!("Wrong packet format provided for event code extractor.");
+            Err(ExtractorError::PacketTooShort)
+        } else {
+            Ok(
+                ExtractorValue::U16(u16::from_be_bytes(packet.data[0..=1].try_into().unwrap()))
+            )
         }
-
-        ExtractorValue::U16(u16::from_be_bytes(packet.data[0..=1].try_into().unwrap()))
     }
 }
 
@@ -34,8 +36,6 @@ mod tests {
     use alloc::vec;
     use alloc::vec::Vec;
 
-    use ross_protocol::event::event_code::BCM_CHANGE_BRIGHTNESS_EVENT_CODE;
-
     const PACKET: Packet = Packet {
         is_error: false,
         device_address: 0xabab,
@@ -43,33 +43,31 @@ mod tests {
     };
 
     #[test]
-    fn event_code_extractor_test() {
+    fn correct_format_test() {
         let mut packet = PACKET;
         packet.data = vec![
-            ((BCM_CHANGE_BRIGHTNESS_EVENT_CODE >> 8) & 0xff) as u8, // event code
-            ((BCM_CHANGE_BRIGHTNESS_EVENT_CODE >> 0) & 0xff) as u8, // event code
-            0x01,                                                   // transmitter_address
-            0x23,                                                   // transmitter_address
-            0x45,                                                   // channel
-            0x67,                                                   // brightness
+            0x00, // event code
+            0x00, // event code
         ];
 
         let extractor = EventCodeExtractor::new();
 
         assert_eq!(
             extractor.extract(&packet),
-            ExtractorValue::U16(BCM_CHANGE_BRIGHTNESS_EVENT_CODE)
+            Ok(ExtractorValue::U16(0x0000))
         );
     }
 
     #[test]
-    #[should_panic(expected = "Wrong packet format provided for event code extractor.")]
-    fn event_code_extractor_wrong_format_test() {
+    fn wrong_format_test() {
         let mut packet = PACKET;
-        packet.data = vec![((BCM_CHANGE_BRIGHTNESS_EVENT_CODE >> 8) & 0xff) as u8];
+        packet.data = vec![
+            0x00, // event code
+            // missing byte
+        ];
 
         let extractor = EventCodeExtractor::new();
 
-        extractor.extract(&packet);
+        assert_eq!(extractor.extract(&packet), Err(ExtractorError::PacketTooShort));
     }
 }

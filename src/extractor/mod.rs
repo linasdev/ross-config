@@ -22,8 +22,13 @@ pub const EVENT_CODE_EXTRACTOR_CODE: u16 = 0x0001;
 pub const PACKET_EXTRACTOR_CODE: u16 = 0x0002;
 pub const EVENT_PRODUCER_ADDRESS_EXTRACTOR_CODE: u16 = 0x0003;
 
+#[derive(Debug, PartialEq)]
+pub enum ExtractorError {
+    PacketTooShort
+}
+
 pub trait Extractor: Downcast + Debug {
-    fn extract<'a>(&self, packet: &'a Packet) -> ExtractorValue<'a>;
+    fn extract<'a>(&self, packet: &'a Packet) -> Result<ExtractorValue<'a>, ExtractorError>;
 }
 
 impl_downcast!(Extractor);
