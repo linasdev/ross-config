@@ -9,6 +9,7 @@ pub mod event_processor;
 pub mod extractor;
 pub mod filter;
 pub mod matcher;
+pub mod creator;
 pub mod producer;
 pub mod state;
 

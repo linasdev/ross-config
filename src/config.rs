@@ -13,6 +13,7 @@ use crate::extractor::*;
 use crate::filter::state::*;
 use crate::filter::*;
 use crate::matcher::Matcher;
+use crate::creator::Creator;
 use crate::producer::state::*;
 use crate::producer::*;
 use crate::StateValue;
@@ -120,8 +121,12 @@ impl ConfigSerializer {
                 Self::write_filter_to_vec(&mut data, &matcher.filter)?;
             }
 
-            Self::write_extractor_to_vec(&mut data, &event_processor.extractor)?;
-            Self::write_producer_to_vec(&mut data, &event_processor.producer)?;
+            write_integer_to_vec!(data, event_processor.creators.len(), u32);
+
+            for creator in event_processor.creators.iter() {
+                Self::write_extractor_to_vec(&mut data, &creator.extractor)?;
+                Self::write_producer_to_vec(&mut data, &creator.producer)?;
+            }
         }
 
         Ok(data)
@@ -164,16 +169,24 @@ impl ConfigSerializer {
                 matchers.push(Matcher { extractor, filter });
             }
 
-            let extractor_code = read_integer_from_vec!(data, offset, u16);
-            let extractor = Self::read_extractor_from_vec(data, &mut offset, extractor_code)?;
+            let creator_count = read_integer_from_vec!(data, offset, u32);
 
-            let producer_code = read_integer_from_vec!(data, offset, u16);
-            let producer = Self::read_producer_from_vec(data, &mut offset, producer_code)?;
+            let mut creators = vec![];
+            creators.reserve(creator_count as usize);
+
+            for _ in 0..matcher_count {
+                let extractor_code = read_integer_from_vec!(data, offset, u16);
+                let extractor = Self::read_extractor_from_vec(data, &mut offset, extractor_code)?;
+    
+                let producer_code = read_integer_from_vec!(data, offset, u16);
+                let producer = Self::read_producer_from_vec(data, &mut offset, producer_code)?;
+
+                creators.push(Creator { extractor, producer });
+            }
 
             event_processors.push(EventProcessor {
                 matchers,
-                extractor,
-                producer,
+                creators,
             });
         }
 
@@ -415,8 +428,10 @@ mod tests {
                 extractor: Box::new(EventCodeExtractor::new()),
                 filter: Box::new(U16IsEqualFilter::new(0xff)),
             }],
-            extractor: Box::new(NoneExtractor::new()),
-            producer: Box::new(BcmChangeBrightnessStateProducer::new(0xff, 0xff, 0)),
+            creators: vec![Creator {
+                extractor: Box::new(NoneExtractor::new()),
+                producer: Box::new(BcmChangeBrightnessStateProducer::new(0xff, 0xff, 0)),
+            }],
         });
 
         let config = Config {
@@ -436,6 +451,7 @@ mod tests {
             0x00, 0x01, // EVENT_CODE_EXTRACTOR_CODE
             0x00, 0x01, // U16_IS_EQUAL_FILTER_CODE
             0xff, 0x00, // value
+            0x00, 0x00, 0x00, 0x01, // creator count
             0x00, 0x00, // NONE_EXTRACTOR_CODE
             0x00, 0x02, // BCM_CHANGE_BRIGHTNESS_STATE_PRODUCER_CODE
             0xff, 0x00, // bcm_address
@@ -480,6 +496,7 @@ mod tests {
             0x00, 0x01, // EVENT_CODE_EXTRACTOR_CODE
             0x00, 0x01, // U16_IS_EQUAL_FILTER_CODE
             0xff, 0x00, // value
+            0x00, 0x00, 0x00, 0x01, // creator count
             0x00, 0x00, // NONE_EXTRACTOR_CODE
             0x00, 0x02, // BCM_CHANGE_BRIGHTNESS_STATE_PRODUCER_CODE
             0xff, 0x00, // bcm_address
