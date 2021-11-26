@@ -22,13 +22,19 @@ pub const BCM_CHANGE_BRIGHTNESS_PRODUCER_CODE: u16 = 0x0001;
 pub const BCM_CHANGE_BRIGHTNESS_STATE_PRODUCER_CODE: u16 = 0x0002;
 pub const PACKET_PRODUCER_CODE: u16 = 0x0003;
 
+#[derive(Debug, PartialEq)]
+pub enum ProducerError {
+    WrongValueType,
+    WrongStateType
+}
+
 pub trait Producer: Downcast + Debug {
     fn produce(
         &self,
         value: ExtractorValue,
         state_manager: &StateManager,
         device_address: u16,
-    ) -> Option<Packet>;
+    ) -> Result<Option<Packet>, ProducerError>;
 }
 
 impl_downcast!(Producer);

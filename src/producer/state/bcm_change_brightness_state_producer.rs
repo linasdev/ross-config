@@ -2,7 +2,7 @@ use ross_protocol::convert_packet::ConvertPacket;
 use ross_protocol::event::bcm::BcmChangeBrightnessEvent;
 use ross_protocol::packet::Packet;
 
-use crate::producer::Producer;
+use crate::producer::{Producer, ProducerError};
 use crate::state::StateManager;
 use crate::{ExtractorValue, StateValue};
 
@@ -30,25 +30,20 @@ impl Producer for BcmChangeBrightnessStateProducer {
         _value: ExtractorValue,
         state_manager: &StateManager,
         device_address: u16,
-    ) -> Option<Packet> {
+    ) -> Result<Option<Packet>, ProducerError> {
         let current_value = *match state_manager.get_value(self.state_index) {
             Some(StateValue::U8(value)) => value,
-            None => {
-                panic!("No state value provided for bcm change brightness state producer.");
-            }
-            _ => {
-                panic!("Wrong state value provided for bcm change brightness state producer.");
-            }
+            _ => return Err(ProducerError::WrongStateType),
         };
 
-        let bcm_change_brightness_event = BcmChangeBrightnessEvent {
+        let event = BcmChangeBrightnessEvent {
             bcm_address: self.bcm_address,
             transmitter_address: device_address,
             channel: self.channel,
             brightness: current_value,
         };
 
-        Some(bcm_change_brightness_event.to_packet())
+        Ok(Some(event.to_packet()))
     }
 }
 
@@ -63,11 +58,6 @@ mod tests {
 
     use ross_protocol::event::event_code::BCM_CHANGE_BRIGHTNESS_EVENT_CODE;
 
-    const BCM_ADDRESS: u16 = 0xabab;
-    const DEVICE_ADDRESS: u16 = 0x0123;
-    const CHANNEL: u8 = 0x45;
-    const BRIGHTNESS: u8 = 0x67;
-
     const PACKET: Packet = Packet {
         is_error: false,
         device_address: 0xabab,
@@ -80,20 +70,20 @@ mod tests {
         packet.data = vec![
             ((BCM_CHANGE_BRIGHTNESS_EVENT_CODE >> 8) & 0xff) as u8, // event code
             ((BCM_CHANGE_BRIGHTNESS_EVENT_CODE >> 0) & 0xff) as u8, // event code
-            ((DEVICE_ADDRESS >> 8) & 0xff) as u8,                   // transmitter_address
-            ((DEVICE_ADDRESS >> 0) & 0xff) as u8,                   // transmitter_address
-            CHANNEL,                                                // channel
-            BRIGHTNESS,                                             // brightness
+            0x00, // transmitter address
+            0x00, // transmitter address
+            0x01, // channel
+            0x02, // brightness
         ];
 
         let mut state_manager = StateManager::new();
-        state_manager.set_value(0, StateValue::U8(BRIGHTNESS));
+        state_manager.set_value(0, StateValue::U8(0x02));
 
-        let producer = BcmChangeBrightnessStateProducer::new(BCM_ADDRESS, CHANNEL, 0);
+        let producer = BcmChangeBrightnessStateProducer::new(0xabab, 0x01, 0);
 
         assert_eq!(
-            producer.produce(ExtractorValue::None, &state_manager, DEVICE_ADDRESS),
-            Some(packet)
+            producer.produce(ExtractorValue::None, &state_manager, 0x0000),
+            Ok(Some(packet))
         );
     }
 }
