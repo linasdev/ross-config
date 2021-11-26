@@ -174,7 +174,7 @@ impl ConfigSerializer {
             let mut creators = vec![];
             creators.reserve(creator_count as usize);
 
-            for _ in 0..matcher_count {
+            for _ in 0..creator_count {
                 let extractor_code = read_integer_from_vec!(data, offset, u16);
                 let extractor = Self::read_extractor_from_vec(data, &mut offset, extractor_code)?;
 
