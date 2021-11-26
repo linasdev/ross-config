@@ -16,7 +16,7 @@ pub struct BcmChangeBrightnessProducer {
 
 impl BcmChangeBrightnessProducer {
     pub fn new(bcm_address: u16, channel: u8, brightness: u8) -> Self {
-        BcmChangeBrightnessProducer {
+        Self {
             bcm_address,
             channel,
             brightness,

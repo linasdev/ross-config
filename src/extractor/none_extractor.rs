@@ -9,7 +9,7 @@ pub struct NoneExtractor {}
 
 impl NoneExtractor {
     pub fn new() -> Self {
-        NoneExtractor {}
+        Self {}
     }
 }
 
