@@ -15,7 +15,12 @@ pub struct Creator {
 }
 
 impl Creator {
-    pub fn create(&mut self, packet: &Packet, state_manager: &mut StateManager, device_address: u16) -> Option<Packet> {
+    pub fn create(
+        &mut self,
+        packet: &Packet,
+        state_manager: &mut StateManager,
+        device_address: u16,
+    ) -> Option<Packet> {
         let value = self.extractor.extract(packet);
 
         self.producer.produce(value, state_manager, device_address)

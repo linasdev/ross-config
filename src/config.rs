@@ -8,12 +8,12 @@ use core::convert::TryInto;
 use core::mem::{size_of, transmute_copy};
 use postcard::{from_bytes, to_allocvec};
 
+use crate::creator::Creator;
 use crate::event_processor::EventProcessor;
 use crate::extractor::*;
 use crate::filter::state::*;
 use crate::filter::*;
 use crate::matcher::Matcher;
-use crate::creator::Creator;
 use crate::producer::state::*;
 use crate::producer::*;
 use crate::StateValue;
@@ -177,17 +177,17 @@ impl ConfigSerializer {
             for _ in 0..matcher_count {
                 let extractor_code = read_integer_from_vec!(data, offset, u16);
                 let extractor = Self::read_extractor_from_vec(data, &mut offset, extractor_code)?;
-    
+
                 let producer_code = read_integer_from_vec!(data, offset, u16);
                 let producer = Self::read_producer_from_vec(data, &mut offset, producer_code)?;
 
-                creators.push(Creator { extractor, producer });
+                creators.push(Creator {
+                    extractor,
+                    producer,
+                });
             }
 
-            event_processors.push(EventProcessor {
-                matchers,
-                creators,
-            });
+            event_processors.push(EventProcessor { matchers, creators });
         }
 
         Ok(Config {

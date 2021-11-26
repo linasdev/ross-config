@@ -2,8 +2,8 @@ extern crate alloc;
 
 use alloc::vec::Vec;
 
-use crate::matcher::Matcher;
 use crate::creator::Creator;
+use crate::matcher::Matcher;
 
 #[derive(Debug)]
 pub struct EventProcessor {

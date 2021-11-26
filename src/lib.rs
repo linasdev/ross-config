@@ -5,11 +5,11 @@ use serde::{Deserialize, Serialize};
 use ross_protocol::packet::Packet;
 
 pub mod config;
+pub mod creator;
 pub mod event_processor;
 pub mod extractor;
 pub mod filter;
 pub mod matcher;
-pub mod creator;
 pub mod producer;
 pub mod state;
 
