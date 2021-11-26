@@ -9,13 +9,18 @@ repository = "https://github.com/linasdev/ross-config"
 readme = "README.md"
 
 [dependencies]
-serde = "1.0.130"
 ross-protocol = "1.20.0"
 
 [dependencies.downcast-rs]
 version = "1.2.0"
 default-features = false
 
+[dependencies.serde]
+version = "1.0.130"
+features = ["alloc"]
+default-features = false
+
 [dependencies.postcard]
 version = "0.7.2"
 features = ["alloc"]
+default-features = false
