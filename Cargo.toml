@@ -1,6 +1,6 @@
 [package]
 name = "ross-config"
-version = "1.19.0"
+version = "1.20.0"
 authors = ["Linas Nikiperavičius <linas@linasdev.com>"]
 edition = "2018"
 license-file = "LICENSE.md"
