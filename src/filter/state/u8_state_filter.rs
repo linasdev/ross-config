@@ -1,4 +1,4 @@
-use crate::filter::Filter;
+use crate::filter::{Filter, FilterError};
 use crate::state::StateManager;
 use crate::{ExtractorValue, StateValue};
 
@@ -15,29 +15,17 @@ impl U8IncrementStateFilter {
 }
 
 impl Filter for U8IncrementStateFilter {
-    fn filter(&mut self, value: &ExtractorValue, state_manager: &mut StateManager) -> bool {
-        match value {
-            ExtractorValue::None => (),
-            _ => {
-                panic!("Wrong value provided for u8 increment state filter.");
-            }
-        };
-
+    fn filter(&mut self, value: &ExtractorValue, state_manager: &mut StateManager) -> Result<bool, FilterError> {
         let current_state = state_manager.get_value(self.state_index);
 
         let current_state = *match current_state {
             Some(StateValue::U8(value)) => value,
-            None => {
-                panic!("No state value provided for u8 increment state filter.");
-            }
-            _ => {
-                panic!("Wrong state value provided for u8 increment state filter.");
-            }
+            _ => return Err(FilterError::WrongStateType),
         };
 
         state_manager.set_value(self.state_index, StateValue::U8(current_state + 1));
 
-        true
+        Ok(true)
     }
 }
 
@@ -45,11 +33,8 @@ impl Filter for U8IncrementStateFilter {
 mod tests {
     use super::*;
 
-    const VALUE_1: u8 = 0x00;
-    const VALUE_2: u32 = 0xffff_ffff;
-
     #[test]
-    fn u8_increment_state_filter_initial_zero_test() {
+    fn initial_zero_test() {
         let mut state_manager = StateManager::new();
         state_manager.set_value(0, StateValue::U8(0));
 
@@ -57,18 +42,18 @@ mod tests {
 
         assert_eq!(
             filter.filter(&ExtractorValue::None, &mut state_manager),
-            true
+            Ok(true)
         );
         assert_eq!(*state_manager.get_value(0).unwrap(), StateValue::U8(1));
         assert_eq!(
             filter.filter(&ExtractorValue::None, &mut state_manager),
-            true
+            Ok(true)
         );
         assert_eq!(*state_manager.get_value(0).unwrap(), StateValue::U8(2));
     }
 
     #[test]
-    fn u8_increment_state_filter_initial_seven_test() {
+    fn initial_seven_test() {
         let mut state_manager = StateManager::new();
         state_manager.set_value(0, StateValue::U8(7));
 
@@ -76,35 +61,23 @@ mod tests {
 
         assert_eq!(
             filter.filter(&ExtractorValue::None, &mut state_manager),
-            true
+            Ok(true)
         );
         assert_eq!(*state_manager.get_value(0).unwrap(), StateValue::U8(8));
         assert_eq!(
             filter.filter(&ExtractorValue::None, &mut state_manager),
-            true
+            Ok(true)
         );
         assert_eq!(*state_manager.get_value(0).unwrap(), StateValue::U8(9));
     }
 
     #[test]
-    #[should_panic(expected = "Wrong value provided for u8 increment state filter.")]
-    fn u8_increment_state_filter_value_has_bad_type_test() {
+    fn wrong_state_type_test() {
         let mut state_manager = StateManager::new();
-        state_manager.set_value(0, StateValue::U8(VALUE_1));
+        state_manager.set_value(0, StateValue::U32(0x0000_0000));
 
         let mut filter = U8IncrementStateFilter::new(0);
 
-        filter.filter(&ExtractorValue::U32(VALUE_2), &mut state_manager);
-    }
-
-    #[test]
-    #[should_panic(expected = "Wrong state value provided for u8 increment state filter.")]
-    fn u8_increment_state_filter_state_value_has_bad_type_test() {
-        let mut state_manager = StateManager::new();
-        state_manager.set_value(0, StateValue::U32(VALUE_2));
-
-        let mut filter = U8IncrementStateFilter::new(0);
-
-        filter.filter(&ExtractorValue::None, &mut state_manager);
+        assert_eq!(filter.filter(&ExtractorValue::None, &mut state_manager), Err(FilterError::WrongStateType));
     }
 }

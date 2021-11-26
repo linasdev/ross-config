@@ -1,4 +1,4 @@
-use crate::filter::Filter;
+use crate::filter::{Filter, FilterError};
 use crate::state::StateManager;
 use crate::{ExtractorValue, StateValue};
 
@@ -16,27 +16,15 @@ impl U32IsEqualStateFilter {
 }
 
 impl Filter for U32IsEqualStateFilter {
-    fn filter(&mut self, value: &ExtractorValue, state_manager: &mut StateManager) -> bool {
-        match value {
-            ExtractorValue::None => (),
-            _ => {
-                panic!("Wrong value provided for u32 is equal state filter.");
-            }
-        };
-
+    fn filter(&mut self, value: &ExtractorValue, state_manager: &mut StateManager) -> Result<bool, FilterError> {
         let current_state = state_manager.get_value(self.state_index);
 
         let current_state = *match current_state {
             Some(StateValue::U32(value)) => value,
-            None => {
-                panic!("No state value provided for u32 is equal state filter.")
-            }
-            _ => {
-                panic!("Wrong state value provided for u32 is equal state filter.");
-            }
+            _ => return Err(FilterError::WrongStateType),
         };
 
-        return current_state == self.value;
+        Ok(current_state == self.value)
     }
 }
 
@@ -53,29 +41,17 @@ impl U32IncrementStateFilter {
 }
 
 impl Filter for U32IncrementStateFilter {
-    fn filter(&mut self, value: &ExtractorValue, state_manager: &mut StateManager) -> bool {
-        match value {
-            ExtractorValue::None => (),
-            _ => {
-                panic!("Wrong value provided for u32 increment state filter.");
-            }
-        };
-
+    fn filter(&mut self, value: &ExtractorValue, state_manager: &mut StateManager) -> Result<bool, FilterError> {
         let current_state = state_manager.get_value(self.state_index);
 
         let current_state = *match current_state {
             Some(StateValue::U32(value)) => value,
-            None => {
-                panic!("No state value provided for u32 increment state filter.");
-            }
-            _ => {
-                panic!("Wrong state value provided for u32 increment state filter.");
-            }
+            _ => return Err(FilterError::WrongStateType),
         };
 
         state_manager.set_value(self.state_index, StateValue::U32(current_state + 1));
 
-        true
+        Ok(true)
     }
 }
 
@@ -93,17 +69,10 @@ impl U32SetStateFilter {
 }
 
 impl Filter for U32SetStateFilter {
-    fn filter(&mut self, value: &ExtractorValue, state_manager: &mut StateManager) -> bool {
-        match value {
-            ExtractorValue::None => (),
-            _ => {
-                panic!("Wrong value provided for u32 set state filter.");
-            }
-        };
-
+    fn filter(&mut self, value: &ExtractorValue, state_manager: &mut StateManager) -> Result<bool, FilterError> {
         state_manager.set_value(self.state_index, StateValue::U32(self.value));
 
-        true
+        Ok(true)
     }
 }
 
@@ -111,60 +80,44 @@ impl Filter for U32SetStateFilter {
 mod tests {
     use super::*;
 
-    const VALUE_1: u32 = 0x0000_0000;
-    const VALUE_2: u32 = 0xabab_abab;
-    const VALUE_3: u8 = 0xff;
-
     #[test]
-    fn u32_is_equal_state_filter_values_equal_test() {
+    fn is_equal_values_equal_test() {
         let mut state_manager = StateManager::new();
-        state_manager.set_value(0, StateValue::U32(VALUE_1));
+        state_manager.set_value(0, StateValue::U32(0x0000_0000));
 
-        let mut filter = U32IsEqualStateFilter::new(0, VALUE_1);
+        let mut filter = U32IsEqualStateFilter::new(0, 0x0000_0000);
 
         assert_eq!(
             filter.filter(&ExtractorValue::None, &mut state_manager),
-            true
+            Ok(true)
         );
     }
 
     #[test]
-    fn u32_is_equal_state_filter_values_not_equal_test() {
+    fn is_equal_values_not_equal_test() {
         let mut state_manager = StateManager::new();
-        state_manager.set_value(0, StateValue::U32(VALUE_1));
+        state_manager.set_value(0, StateValue::U32(0xffff_ffff));
 
-        let mut filter = U32IsEqualStateFilter::new(0, VALUE_2);
+        let mut filter = U32IsEqualStateFilter::new(0, 0x0000_0000);
 
         assert_eq!(
             filter.filter(&ExtractorValue::None, &mut state_manager),
-            false
+            Ok(false)
         );
     }
 
     #[test]
-    #[should_panic(expected = "Wrong value provided for u32 is equal state filter.")]
-    fn u32_is_equal_state_filter_value_has_bad_type_test() {
+    fn is_equal_wrong_state_type_test() {
         let mut state_manager = StateManager::new();
-        state_manager.set_value(0, StateValue::U32(VALUE_1));
+        state_manager.set_value(0, StateValue::U8(0x00));
 
-        let mut filter = U32IsEqualStateFilter::new(0, VALUE_2);
+        let mut filter = U32IsEqualStateFilter::new(0, 0x0000_0000);
 
-        filter.filter(&ExtractorValue::U32(VALUE_1), &mut state_manager);
+        assert_eq!(filter.filter(&ExtractorValue::None, &mut state_manager), Err(FilterError::WrongStateType));
     }
 
     #[test]
-    #[should_panic(expected = "Wrong state value provided for u32 is equal state filter.")]
-    fn u32_is_equal_state_filter_state_value_has_bad_type_test() {
-        let mut state_manager = StateManager::new();
-        state_manager.set_value(0, StateValue::U8(VALUE_3));
-
-        let mut filter = U32IsEqualStateFilter::new(0, VALUE_2);
-
-        filter.filter(&ExtractorValue::None, &mut state_manager);
-    }
-
-    #[test]
-    fn u32_increment_state_filter_initial_zero_test() {
+    fn increment_initial_zero_test() {
         let mut state_manager = StateManager::new();
         state_manager.set_value(0, StateValue::U32(0));
 
@@ -172,18 +125,18 @@ mod tests {
 
         assert_eq!(
             filter.filter(&ExtractorValue::None, &mut state_manager),
-            true
+            Ok(true)
         );
         assert_eq!(*state_manager.get_value(0).unwrap(), StateValue::U32(1));
         assert_eq!(
             filter.filter(&ExtractorValue::None, &mut state_manager),
-            true
+            Ok(true)
         );
         assert_eq!(*state_manager.get_value(0).unwrap(), StateValue::U32(2));
     }
 
     #[test]
-    fn u32_increment_state_filter_initial_seven_test() {
+    fn increment_initial_seven_test() {
         let mut state_manager = StateManager::new();
         state_manager.set_value(0, StateValue::U32(7));
 
@@ -191,63 +144,40 @@ mod tests {
 
         assert_eq!(
             filter.filter(&ExtractorValue::None, &mut state_manager),
-            true
+            Ok(true)
         );
         assert_eq!(*state_manager.get_value(0).unwrap(), StateValue::U32(8));
         assert_eq!(
             filter.filter(&ExtractorValue::None, &mut state_manager),
-            true
+            Ok(true)
         );
         assert_eq!(*state_manager.get_value(0).unwrap(), StateValue::U32(9));
     }
 
     #[test]
-    #[should_panic(expected = "Wrong value provided for u32 increment state filter.")]
-    fn u32_increment_state_filter_value_has_bad_type_test() {
+    fn increment_wrong_state_type_test() {
         let mut state_manager = StateManager::new();
-        state_manager.set_value(0, StateValue::U32(VALUE_1));
+        state_manager.set_value(0, StateValue::U8(0x00));
 
         let mut filter = U32IncrementStateFilter::new(0);
 
-        filter.filter(&ExtractorValue::U8(VALUE_3), &mut state_manager);
+        assert_eq!(filter.filter(&ExtractorValue::None, &mut state_manager), Err(FilterError::WrongStateType));
     }
 
     #[test]
-    #[should_panic(expected = "Wrong state value provided for u32 increment state filter.")]
-    fn u32_increment_state_filter_state_value_has_bad_type_test() {
+    fn set_test() {
         let mut state_manager = StateManager::new();
-        state_manager.set_value(0, StateValue::U8(VALUE_3));
+        state_manager.set_value(0, StateValue::U32(0x0000_0000));
 
-        let mut filter = U32IncrementStateFilter::new(0);
-
-        filter.filter(&ExtractorValue::None, &mut state_manager);
-    }
-
-    #[test]
-    fn u32_set_state_filter_test() {
-        let mut state_manager = StateManager::new();
-        state_manager.set_value(0, StateValue::U32(VALUE_1));
-
-        let mut filter = U32SetStateFilter::new(0, VALUE_2);
+        let mut filter = U32SetStateFilter::new(0, 0xffff_ffff);
 
         assert_eq!(
             filter.filter(&ExtractorValue::None, &mut state_manager),
-            true
+            Ok(true)
         );
         assert_eq!(
             *state_manager.get_value(0).unwrap(),
-            StateValue::U32(VALUE_2)
+            StateValue::U32(0xffff_ffff)
         );
-    }
-
-    #[test]
-    #[should_panic(expected = "Wrong value provided for u32 set state filter.")]
-    fn u32_set_state_filter_value_has_bad_type_test() {
-        let mut state_manager = StateManager::new();
-        state_manager.set_value(0, StateValue::U32(VALUE_1));
-
-        let mut filter = U32SetStateFilter::new(0, VALUE_2);
-
-        filter.filter(&ExtractorValue::U32(VALUE_2), &mut state_manager);
     }
 }

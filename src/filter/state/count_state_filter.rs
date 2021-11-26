@@ -1,4 +1,4 @@
-use crate::filter::Filter;
+use crate::filter::{Filter, FilterError};
 use crate::state::StateManager;
 use crate::{ExtractorValue, StateValue};
 
@@ -19,33 +19,21 @@ impl CountStateFilter {
 }
 
 impl Filter for CountStateFilter {
-    fn filter(&mut self, value: &ExtractorValue, state_manager: &mut StateManager) -> bool {
-        match value {
-            ExtractorValue::None => (),
-            _ => {
-                panic!("Wrong value provided for count state filter.");
-            }
-        };
-
+    fn filter(&mut self, value: &ExtractorValue, state_manager: &mut StateManager) -> Result<bool, FilterError> {
         let current_state = state_manager.get_value(self.state_index);
 
         let current_state = match current_state {
             Some(StateValue::U32(value)) => value + 1,
-            None => {
-                panic!("No state value provided for count state filter.");
-            }
-            _ => {
-                panic!("Wrong state value provided for count state filter.");
-            }
+            _ => return Err(FilterError::WrongStateType),
         };
 
         state_manager.set_value(self.state_index, StateValue::U32(current_state));
 
         if current_state == self.required_state {
             state_manager.set_value(self.state_index, StateValue::U32(0));
-            true
+            Ok(true)
         } else {
-            false
+            Ok(false)
         }
     }
 }
@@ -54,11 +42,8 @@ impl Filter for CountStateFilter {
 mod tests {
     use super::*;
 
-    const VALUE_1: u32 = 0x0000_0000;
-    const VALUE_2: u8 = 0xff;
-
     #[test]
-    fn count_state_filter_initial_zero_maximum_two_test() {
+    fn initial_zero_maximum_two_test() {
         let mut state_manager = StateManager::new();
         state_manager.set_value(0, StateValue::U32(0));
 
@@ -66,24 +51,24 @@ mod tests {
 
         assert_eq!(
             filter.filter(&ExtractorValue::None, &mut state_manager),
-            false
+            Ok(false)
         );
         assert_eq!(
             filter.filter(&ExtractorValue::None, &mut state_manager),
-            true
+            Ok(true)
         );
         assert_eq!(
             filter.filter(&ExtractorValue::None, &mut state_manager),
-            false
+            Ok(false)
         );
         assert_eq!(
             filter.filter(&ExtractorValue::None, &mut state_manager),
-            true
+            Ok(true)
         );
     }
 
     #[test]
-    fn count_state_filter_initial_four_maximum_five_test() {
+    fn initial_four_maximum_five_test() {
         let mut state_manager = StateManager::new();
         state_manager.set_value(0, StateValue::U32(4));
 
@@ -91,49 +76,37 @@ mod tests {
 
         assert_eq!(
             filter.filter(&ExtractorValue::None, &mut state_manager),
-            true
+            Ok(true)
         );
         assert_eq!(
             filter.filter(&ExtractorValue::None, &mut state_manager),
-            false
+            Ok(false)
         );
         assert_eq!(
             filter.filter(&ExtractorValue::None, &mut state_manager),
-            false
+            Ok(false)
         );
         assert_eq!(
             filter.filter(&ExtractorValue::None, &mut state_manager),
-            false
+            Ok(false)
         );
         assert_eq!(
             filter.filter(&ExtractorValue::None, &mut state_manager),
-            false
+            Ok(false)
         );
         assert_eq!(
             filter.filter(&ExtractorValue::None, &mut state_manager),
-            true
+            Ok(true)
         );
     }
 
     #[test]
-    #[should_panic(expected = "Wrong value provided for count state filter.")]
-    fn count_state_filter_value_has_bad_type_test() {
+    fn wrong_state_type_test() {
         let mut state_manager = StateManager::new();
-        state_manager.set_value(0, StateValue::U32(VALUE_1));
+        state_manager.set_value(0, StateValue::U8(0x00));
 
         let mut filter = CountStateFilter::new(0, 5);
 
-        filter.filter(&ExtractorValue::U32(VALUE_1), &mut state_manager);
-    }
-
-    #[test]
-    #[should_panic(expected = "Wrong state value provided for count state filter.")]
-    fn count_state_filter_state_value_has_bad_type_test() {
-        let mut state_manager = StateManager::new();
-        state_manager.set_value(0, StateValue::U8(VALUE_2));
-
-        let mut filter = CountStateFilter::new(0, 5);
-
-        filter.filter(&ExtractorValue::None, &mut state_manager);
+        assert_eq!(filter.filter(&ExtractorValue::None, &mut state_manager), Err(FilterError::WrongStateType));
     }
 }
