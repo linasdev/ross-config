@@ -5,6 +5,7 @@ use ross_protocol::packet::Packet;
 
 use crate::state_manager::StateManager;
 use crate::ExtractorValue;
+use crate::serializer::Serialize;
 
 mod none;
 pub use none::*;
@@ -30,13 +31,14 @@ pub enum ProducerError {
     WrongStateType,
 }
 
-pub trait Producer: Downcast + Debug {
+pub trait Producer: Downcast + Debug + Serialize {
     fn produce(
         &self,
         value: ExtractorValue,
         state_manager: &StateManager,
         device_address: u16,
     ) -> Result<Option<Packet>, ProducerError>;
+    fn get_code(&self) -> u16;
 }
 
 impl_downcast!(Producer);

@@ -1,13 +1,21 @@
+extern crate alloc;
+
+use alloc::vec;
+use alloc::vec::Vec;
+use alloc::boxed::Box;
+use core::convert::TryInto;
+
 use ross_protocol::convert_packet::ConvertPacket;
 use ross_protocol::event::message::{MessageEvent, MessageValue};
 use ross_protocol::packet::Packet;
 
-use crate::producer::{Producer, ProducerError};
+use crate::producer::{Producer, ProducerError, MESSAGE_PRODUCER_CODE};
 use crate::state_manager::StateManager;
 use crate::ExtractorValue;
+use crate::serializer::{Serialize, TryDeserialize, ConfigSerializerError};
 
 #[repr(C)]
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct MessageProducer {
     receiver_address: u16,
     code: u16,
@@ -39,6 +47,48 @@ impl Producer for MessageProducer {
         };
 
         Ok(Some(event.to_packet()))
+    }
+
+    fn get_code(&self) -> u16 {
+        MESSAGE_PRODUCER_CODE
+    }
+}
+
+impl Serialize for MessageProducer {
+    fn serialize(&self) -> Vec<u8> {
+        let receiver_address_bytes = self.receiver_address.to_be_bytes();
+        let code_bytes = self.code.to_be_bytes();
+
+        let mut data = vec![
+            receiver_address_bytes[0],
+            receiver_address_bytes[1],
+            code_bytes[0],
+            code_bytes[1],
+        ];
+
+        let mut value_bytes = self.value.serialize();
+
+        data.append(&mut value_bytes);
+
+        return data;
+    }
+}
+
+impl TryDeserialize for MessageProducer {
+    fn try_deserialize(data: &[u8]) -> Result<Box<Self>, ConfigSerializerError> {
+        if data.len() < 9 {
+            return Err(ConfigSerializerError::WrongSize);
+        }
+
+        let receiver_address = u16::from_be_bytes(data[0..=1].try_into().unwrap());
+        let code = u16::from_be_bytes(data[2..=3].try_into().unwrap());
+        let value = *MessageValue::try_deserialize(&data[4..])?;
+
+        Ok(Box::new(Self {
+            receiver_address,
+            code,
+            value,
+        }))
     }
 }
 
@@ -86,5 +136,59 @@ mod tests {
             producer.produce(ExtractorValue::None, &state_manager, 0x0000),
             Ok(Some(packet))
         );
+    }
+
+    #[test]
+    fn serialize_test() {
+        let producer = MessageProducer::new(0xabab, 0x0123, MessageValue::U32(0xffff_ffff));
+
+        let expected_data = vec![
+            0xab,
+            0xab,
+            0x01,
+            0x23,
+            0x02,
+            0xff,
+            0xff,
+            0xff,
+            0xff,
+        ];
+
+        assert_eq!(producer.serialize(), expected_data);
+    }
+
+    #[test]
+    fn deserialize_test() {
+        let data = vec![
+            0xab,
+            0xab,
+            0x01,
+            0x23,
+            0x02,
+            0xff,
+            0xff,
+            0xff,
+            0xff,
+        ];
+
+        let producer = Box::new(MessageProducer::new(0xabab, 0x0123, MessageValue::U32(0xffff_ffff)));
+
+        assert_eq!(MessageProducer::try_deserialize(&data), Ok(producer));
+    }
+
+    #[test]
+    fn deserialize_wrong_size_test() {
+        let data = vec![
+            0xab,
+            0xab,
+            0x01,
+            0x23,
+            0x02,
+            0xff,
+            0xff,
+            0xff,
+        ];
+
+        assert_eq!(MessageProducer::try_deserialize(&data), Err(ConfigSerializerError::WrongSize));
     }
 }

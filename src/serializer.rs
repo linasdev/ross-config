@@ -124,11 +124,14 @@ impl ConfigSerializer {
 
             for creator in event_processor.creators.iter() {
                 write_integer_to_vec!(data, creator.extractor.get_code(), u32);
-                let mut serialized_extractor = creator.extractor.serialize();
-                write_integer_to_vec!(data, serialized_extractor.len() as u32, u32);
-                data.append(&mut serialized_extractor);
+                let mut extractor = creator.extractor.serialize();
+                write_integer_to_vec!(data, extractor.len() as u32, u32);
+                data.append(&mut extractor);
 
-                Self::write_producer_to_vec(&mut data, &creator.producer)?;
+                write_integer_to_vec!(data, creator.producer.get_code(), u32);
+                let mut producer = creator.producer.serialize();
+                write_integer_to_vec!(data, producer.len() as u32, u32);
+                data.append(&mut producer);
             }
         }
 
@@ -186,7 +189,9 @@ impl ConfigSerializer {
                 offset += extractor_len as usize;
 
                 let producer_code = read_integer_from_vec!(data, offset, u16);
-                let producer = Self::read_producer_from_vec(data, &mut offset, producer_code)?;
+                let producer_len = read_integer_from_vec!(data, offset, u32);
+                let producer = Self::read_producer_from_vec(data, producer_code)?;
+                offset += producer_len as usize;
 
                 creators.push(Creator {
                     extractor,
@@ -361,67 +366,16 @@ impl ConfigSerializer {
 
     fn read_producer_from_vec(
         data: &Vec<u8>,
-        offset: &mut usize,
         producer_code: u16,
     ) -> Result<Box<dyn Producer>, ConfigSerializerError> {
-        impl_item_read!(
-            NONE_PRODUCER_CODE,
-            NoneProducer,
-            data,
-            offset,
-            producer_code
-        );
-        impl_item_read!(
-            PACKET_PRODUCER_CODE,
-            PacketProducer,
-            data,
-            offset,
-            producer_code
-        );
-        impl_item_read!(
-            MESSAGE_PRODUCER_CODE,
-            MessageProducer,
-            data,
-            offset,
-            producer_code
-        );
-        impl_item_read!(
-            BCM_CHANGE_BRIGHTNESS_PRODUCER_CODE,
-            BcmChangeBrightnessProducer,
-            data,
-            offset,
-            producer_code
-        );
-        impl_item_read!(
-            BCM_CHANGE_BRIGHTNESS_STATE_PRODUCER_CODE,
-            BcmChangeBrightnessStateProducer,
-            data,
-            offset,
-            producer_code
-        );
-        Err(ConfigSerializerError::UnknownProducer)
-    }
-
-    fn write_producer_to_vec(
-        data: &mut Vec<u8>,
-        producer: &Box<dyn Producer>,
-    ) -> Result<(), ConfigSerializerError> {
-        impl_item_write!(NONE_PRODUCER_CODE, NoneProducer, data, producer);
-        impl_item_write!(PACKET_PRODUCER_CODE, PacketProducer, data, producer);
-        impl_item_write!(MESSAGE_PRODUCER_CODE, MessageProducer, data, producer);
-        impl_item_write!(
-            BCM_CHANGE_BRIGHTNESS_PRODUCER_CODE,
-            BcmChangeBrightnessProducer,
-            data,
-            producer
-        );
-        impl_item_write!(
-            BCM_CHANGE_BRIGHTNESS_STATE_PRODUCER_CODE,
-            BcmChangeBrightnessStateProducer,
-            data,
-            producer
-        );
-        Err(ConfigSerializerError::UnknownProducer)
+        match producer_code {
+            NONE_PRODUCER_CODE => Ok(NoneProducer::try_deserialize(data)?),
+            PACKET_PRODUCER_CODE => Ok(PacketProducer::try_deserialize(data)?),
+            MESSAGE_PRODUCER_CODE => Ok(MessageProducer::try_deserialize(data)?),
+            BCM_CHANGE_BRIGHTNESS_PRODUCER_CODE => Ok(BcmChangeBrightnessProducer::try_deserialize(data)?),
+            BCM_CHANGE_BRIGHTNESS_STATE_PRODUCER_CODE => Ok(BcmChangeBrightnessStateProducer::try_deserialize(data)?),
+            _ => Err(ConfigSerializerError::UnknownProducer),
+        }
     }
 }
 
