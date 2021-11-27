@@ -20,7 +20,7 @@ impl Extractor for ButtonIndexExtractor {
         if let Ok(event) = ButtonPressedEvent::try_from_packet(packet) {
             return Ok(ExtractorValue::U8(event.index));
         }
-        
+
         match ButtonReleasedEvent::try_from_packet(packet) {
             Ok(event) => Ok(ExtractorValue::U8(event.index)),
             Err(err) => Err(ExtractorError::ConvertPacketError(err)),
@@ -57,10 +57,7 @@ mod tests {
 
         let extractor = ButtonIndexExtractor::new();
 
-        assert_eq!(
-            extractor.extract(&packet),
-            Ok(ExtractorValue::U8(0x45)),
-        );
+        assert_eq!(extractor.extract(&packet), Ok(ExtractorValue::U8(0x45)),);
     }
 
     #[test]
@@ -71,7 +68,7 @@ mod tests {
             ((BUTTON_PRESSED_EVENT_CODE >> 0) & 0xff) as u8, // event code
             0x01,                                            // button address
             0x23,                                            // button address
-            // missing byte
+                                                             // missing byte
         ];
 
         let extractor = ButtonIndexExtractor::new();
@@ -88,17 +85,14 @@ mod tests {
         packet.data = vec![
             ((BUTTON_RELEASED_EVENT_CODE >> 8) & 0xff) as u8, // event code
             ((BUTTON_RELEASED_EVENT_CODE >> 0) & 0xff) as u8, // event code
-            0x01,                                            // button address
-            0x23,                                            // button address
-            0x45,                                            // index
+            0x01,                                             // button address
+            0x23,                                             // button address
+            0x45,                                             // index
         ];
 
         let extractor = ButtonIndexExtractor::new();
 
-        assert_eq!(
-            extractor.extract(&packet),
-            Ok(ExtractorValue::U8(0x45)),
-        );
+        assert_eq!(extractor.extract(&packet), Ok(ExtractorValue::U8(0x45)),);
     }
 
     #[test]
@@ -107,9 +101,9 @@ mod tests {
         packet.data = vec![
             ((BUTTON_RELEASED_EVENT_CODE >> 8) & 0xff) as u8, // event code
             ((BUTTON_RELEASED_EVENT_CODE >> 0) & 0xff) as u8, // event code
-            0x01,                                            // button address
-            0x23,                                            // button address
-            // missing byte
+            0x01,                                             // button address
+            0x23,                                             // button address
+                                                              // missing byte
         ];
 
         let extractor = ButtonIndexExtractor::new();
