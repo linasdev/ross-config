@@ -4,6 +4,36 @@ use crate::{ExtractorValue, StateValue};
 
 #[repr(C)]
 #[derive(Debug)]
+pub struct U8IsEqualStateFilter {
+    state_index: u32,
+    value: u8,
+}
+
+impl U8IsEqualStateFilter {
+    pub fn new(state_index: u32, value: u8) -> Self {
+        Self { state_index, value }
+    }
+}
+
+impl Filter for U8IsEqualStateFilter {
+    fn filter(
+        &mut self,
+        _value: &ExtractorValue,
+        state_manager: &mut StateManager,
+    ) -> Result<bool, FilterError> {
+        let current_state = state_manager.get_value(self.state_index);
+
+        let current_state = match current_state {
+            Some(StateValue::U8(value)) => *value,
+            _ => return Err(FilterError::WrongStateType),
+        };
+
+        Ok(current_state == self.value)
+    }
+}
+
+#[repr(C)]
+#[derive(Debug)]
 pub struct U8IncrementStateFilter {
     state_index: u32,
 }
@@ -89,6 +119,45 @@ impl Filter for U8SetFromValueStateFilter {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn is_equal_values_equal_test() {
+        let mut state_manager = StateManager::new();
+        state_manager.set_value(0, StateValue::U8(0x00));
+
+        let mut filter = U8IsEqualStateFilter::new(0, 0x00);
+
+        assert_eq!(
+            filter.filter(&ExtractorValue::None, &mut state_manager),
+            Ok(true)
+        );
+    }
+
+    #[test]
+    fn is_equal_values_not_equal_test() {
+        let mut state_manager = StateManager::new();
+        state_manager.set_value(0, StateValue::U8(0xff));
+
+        let mut filter = U8IsEqualStateFilter::new(0, 0x00);
+
+        assert_eq!(
+            filter.filter(&ExtractorValue::None, &mut state_manager),
+            Ok(false)
+        );
+    }
+
+    #[test]
+    fn is_equal_wrong_state_type_test() {
+        let mut state_manager = StateManager::new();
+        state_manager.set_value(0, StateValue::U16(0x0000));
+
+        let mut filter = U8IsEqualStateFilter::new(0, 0x00);
+
+        assert_eq!(
+            filter.filter(&ExtractorValue::None, &mut state_manager),
+            Err(FilterError::WrongStateType)
+        );
+    }
 
     #[test]
     fn increment_initial_zero_test() {

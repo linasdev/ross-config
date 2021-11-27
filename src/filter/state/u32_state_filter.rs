@@ -23,8 +23,8 @@ impl Filter for U32IsEqualStateFilter {
     ) -> Result<bool, FilterError> {
         let current_state = state_manager.get_value(self.state_index);
 
-        let current_state = *match current_state {
-            Some(StateValue::U32(value)) => value,
+        let current_state = match current_state {
+            Some(StateValue::U32(value)) => *value,
             _ => return Err(FilterError::WrongStateType),
         };
 
