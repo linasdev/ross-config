@@ -1,6 +1,6 @@
 use crate::filter::{Filter, FilterError};
 use crate::state_manager::StateManager;
-use crate::{Value, ExtractorValue};
+use crate::{ExtractorValue, Value};
 
 #[repr(C)]
 #[derive(Debug)]
@@ -10,9 +10,7 @@ pub struct ValueEqualToConstFilter {
 
 impl ValueEqualToConstFilter {
     pub fn new(required_value: Value) -> Self {
-        Self {
-            required_value,
-        }
+        Self { required_value }
     }
 }
 

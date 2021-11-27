@@ -1,6 +1,6 @@
 use crate::filter::{Filter, FilterError};
 use crate::state_manager::StateManager;
-use crate::{Value, ExtractorValue};
+use crate::{ExtractorValue, Value};
 
 #[repr(C)]
 #[derive(Debug)]

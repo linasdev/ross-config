@@ -81,7 +81,7 @@ mod tests {
         let mut packet = PACKET;
         packet.data = vec![
             0x00, // event code
-            // missing byte
+                 // missing byte
         ];
 
         let extractor = EventCodeExtractor::new();

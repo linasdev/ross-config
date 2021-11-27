@@ -1,6 +1,6 @@
 use crate::filter::{Filter, FilterError};
 use crate::state_manager::StateManager;
-use crate::{Value, ExtractorValue};
+use crate::{ExtractorValue, Value};
 
 #[repr(C)]
 #[derive(Debug)]
@@ -10,9 +10,7 @@ pub struct StateEqualToValueFilter {
 
 impl StateEqualToValueFilter {
     pub fn new(state_index: u32) -> Self {
-        Self {
-            state_index,
-        }
+        Self { state_index }
     }
 }
 
