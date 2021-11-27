@@ -236,6 +236,13 @@ impl ConfigSerializer {
             offset,
             extractor_code
         );
+        impl_item_read!(
+            MESSAGE_VALUE_EXTRACTOR_CODE,
+            MessageValueExtractor,
+            data,
+            offset,
+            extractor_code
+        );
         Err(ConfigSerializerError::UnknownExtractor)
     }
 
@@ -253,6 +260,7 @@ impl ConfigSerializer {
         impl_item_write!(PACKET_EXTRACTOR_CODE, PacketExtractor, data, extractor);
         impl_item_write!(EVENT_PRODUCER_ADDRESS_EXTRACTOR_CODE, EventProducerAddressExtractor, data, extractor);
         impl_item_write!(MESSAGE_CODE_EXTRACTOR_CODE, MessageCodeExtractor, data, extractor);
+        impl_item_write!(MESSAGE_VALUE_EXTRACTOR_CODE, MessageValueExtractor, data, extractor);
         Err(ConfigSerializerError::UnknownExtractor)
     }
 
