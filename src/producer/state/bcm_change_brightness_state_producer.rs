@@ -3,8 +3,8 @@ use ross_protocol::event::bcm::BcmChangeBrightnessEvent;
 use ross_protocol::packet::Packet;
 
 use crate::producer::{Producer, ProducerError};
-use crate::state::StateManager;
-use crate::{ExtractorValue, StateValue};
+use crate::state_manager::StateManager;
+use crate::{ExtractorValue, Value};
 
 #[repr(C)]
 #[derive(Debug)]
@@ -32,7 +32,7 @@ impl Producer for BcmChangeBrightnessStateProducer {
         device_address: u16,
     ) -> Result<Option<Packet>, ProducerError> {
         let current_value = *match state_manager.get_value(self.state_index) {
-            Some(StateValue::U8(value)) => value,
+            Some(Value::U8(value)) => value,
             _ => return Err(ProducerError::WrongStateType),
         };
 
@@ -77,7 +77,7 @@ mod tests {
         ];
 
         let mut state_manager = StateManager::new();
-        state_manager.set_value(0, StateValue::U8(0x02));
+        state_manager.set_value(0, Value::U8(0x02));
 
         let producer = BcmChangeBrightnessStateProducer::new(0xabab, 0x01, 0);
 

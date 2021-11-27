@@ -6,7 +6,7 @@ use ross_protocol::packet::Packet;
 
 use crate::extractor::{Extractor, ExtractorError};
 use crate::producer::{Producer, ProducerError};
-use crate::state::StateManager;
+use crate::state_manager::StateManager;
 
 #[derive(Debug)]
 pub enum CreatorError {

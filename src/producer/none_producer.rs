@@ -1,7 +1,7 @@
 use ross_protocol::packet::Packet;
 
 use crate::producer::{Producer, ProducerError};
-use crate::state::StateManager;
+use crate::state_manager::StateManager;
 use crate::ExtractorValue;
 
 #[repr(C)]
