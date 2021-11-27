@@ -2,6 +2,7 @@ use core::fmt::Debug;
 use downcast_rs::{impl_downcast, Downcast};
 
 use ross_protocol::packet::Packet;
+use ross_protocol::convert_packet::ConvertPacketError;
 
 use crate::ExtractorValue;
 
@@ -17,14 +18,19 @@ pub use packet_extractor::*;
 mod event_producer_address_extractor;
 pub use event_producer_address_extractor::*;
 
+mod message_code_extractor;
+pub use message_code_extractor::*;
+
 pub const NONE_EXTRACTOR_CODE: u16 = 0x0000;
 pub const EVENT_CODE_EXTRACTOR_CODE: u16 = 0x0001;
 pub const PACKET_EXTRACTOR_CODE: u16 = 0x0002;
 pub const EVENT_PRODUCER_ADDRESS_EXTRACTOR_CODE: u16 = 0x0003;
+pub const MESSAGE_CODE_EXTRACTOR_CODE: u16 = 0x0004;
 
 #[derive(Debug, PartialEq)]
 pub enum ExtractorError {
-    PacketTooShort
+    PacketTooShort,
+    ConvertPacketError(ConvertPacketError),
 }
 
 pub trait Extractor: Downcast + Debug {
