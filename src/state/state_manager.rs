@@ -2,10 +2,10 @@ extern crate alloc;
 
 use alloc::collections::BTreeMap;
 
-use crate::StateValue;
+use crate::Value;
 
 pub struct StateManager {
-    state: BTreeMap<u32, StateValue>,
+    state: BTreeMap<u32, Value>,
 }
 
 impl StateManager {
@@ -15,11 +15,11 @@ impl StateManager {
         }
     }
 
-    pub fn get_value(&self, index: u32) -> Option<&StateValue> {
+    pub fn get_value(&self, index: u32) -> Option<&Value> {
         self.state.get(&index)
     }
 
-    pub fn set_value(&mut self, index: u32, value: StateValue) {
+    pub fn set_value(&mut self, index: u32, value: Value) {
         self.state.insert(index, value);
     }
 }

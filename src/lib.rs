@@ -14,7 +14,7 @@ pub mod producer;
 pub mod state;
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
-pub enum StateValue {
+pub enum Value {
     U8(u8),
     U16(u16),
     U32(u32),
