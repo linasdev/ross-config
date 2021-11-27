@@ -1,13 +1,13 @@
 extern crate alloc;
 
+use alloc::boxed::Box;
 use alloc::vec;
 use alloc::vec::Vec;
-use alloc::boxed::Box;
 
 use crate::filter::{Filter, FilterError, VALUE_EQUAL_TO_CONST_FILTER_CODE};
+use crate::serializer::{ConfigSerializerError, Serialize, TryDeserialize};
 use crate::state_manager::StateManager;
 use crate::{ExtractorValue, Value};
-use crate::serializer::{Serialize, TryDeserialize, ConfigSerializerError};
 
 #[repr(C)]
 #[derive(Debug, PartialEq)]
@@ -61,9 +61,7 @@ impl TryDeserialize for ValueEqualToConstFilter {
 
         let required_value = *Value::try_deserialize(&data[0..])?;
 
-        Ok(Box::new(Self {
-            required_value,
-        }))
+        Ok(Box::new(Self { required_value }))
     }
 }
 
@@ -135,26 +133,14 @@ mod tests {
     fn serialize_test() {
         let filter = ValueEqualToConstFilter::new(Value::U32(0xffff_ffff));
 
-        let expected_data = vec![
-            0x02,
-            0xff,
-            0xff,
-            0xff,
-            0xff,
-        ];
+        let expected_data = vec![0x02, 0xff, 0xff, 0xff, 0xff];
 
         assert_eq!(filter.serialize(), expected_data);
     }
 
     #[test]
     fn deserialize_test() {
-        let data = vec![
-            0x02,
-            0xff,
-            0xff,
-            0xff,
-            0xff,
-        ];
+        let data = vec![0x02, 0xff, 0xff, 0xff, 0xff];
 
         let filter = Box::new(ValueEqualToConstFilter::new(Value::U32(0xffff_ffff)));
 
@@ -163,13 +149,11 @@ mod tests {
 
     #[test]
     fn deserialize_wrong_size_test() {
-        let data = vec![
-            0x02,
-            0xff,
-            0xff,
-            0xff,
-        ];
+        let data = vec![0x02, 0xff, 0xff, 0xff];
 
-        assert_eq!(ValueEqualToConstFilter::try_deserialize(&data), Err(ConfigSerializerError::WrongSize));
+        assert_eq!(
+            ValueEqualToConstFilter::try_deserialize(&data),
+            Err(ConfigSerializerError::WrongSize)
+        );
     }
 }

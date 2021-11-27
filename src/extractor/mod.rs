@@ -4,8 +4,8 @@ use downcast_rs::{impl_downcast, Downcast};
 use ross_protocol::convert_packet::ConvertPacketError;
 use ross_protocol::packet::Packet;
 
-use crate::ExtractorValue;
 use crate::serializer::Serialize;
+use crate::ExtractorValue;
 
 mod none;
 pub use none::*;

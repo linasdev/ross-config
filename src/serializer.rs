@@ -83,7 +83,7 @@ impl ConfigSerializer {
                 let mut extractor = matcher.extractor.serialize();
                 write_integer_to_vec!(data, extractor.len() as u8, u8);
                 data.append(&mut extractor);
-                
+
                 write_integer_to_vec!(data, matcher.filter.get_code(), u16);
                 let mut filter = matcher.filter.serialize();
                 write_integer_to_vec!(data, filter.len() as u8, u8);
@@ -118,7 +118,8 @@ impl ConfigSerializer {
             let state_index = read_integer_from_vec!(data, offset, u32);
             let serialized_state_len = read_integer_from_vec!(data, offset, u8) as usize;
 
-            let state_value = *Value::try_deserialize(&data[offset..offset + serialized_state_len])?;
+            let state_value =
+                *Value::try_deserialize(&data[offset..offset + serialized_state_len])?;
             offset += serialized_state_len;
 
             initial_state.insert(state_index, state_value);
@@ -188,7 +189,9 @@ impl ConfigSerializer {
             NONE_EXTRACTOR_CODE => Ok(NoneExtractor::try_deserialize(data)?),
             PACKET_EXTRACTOR_CODE => Ok(PacketExtractor::try_deserialize(data)?),
             EVENT_CODE_EXTRACTOR_CODE => Ok(EventCodeExtractor::try_deserialize(data)?),
-            EVENT_PRODUCER_ADDRESS_EXTRACTOR_CODE => Ok(EventProducerAddressExtractor::try_deserialize(data)?),
+            EVENT_PRODUCER_ADDRESS_EXTRACTOR_CODE => {
+                Ok(EventProducerAddressExtractor::try_deserialize(data)?)
+            }
             MESSAGE_CODE_EXTRACTOR_CODE => Ok(MessageCodeExtractor::try_deserialize(data)?),
             MESSAGE_VALUE_EXTRACTOR_CODE => Ok(MessageValueExtractor::try_deserialize(data)?),
             BUTTON_INDEX_EXTRACTOR_CODE => Ok(ButtonIndexExtractor::try_deserialize(data)?),
@@ -204,10 +207,18 @@ impl ConfigSerializer {
             VALUE_EQUAL_TO_CONST_FILTER_CODE => Ok(ValueEqualToConstFilter::try_deserialize(data)?),
             STATE_EQUAL_TO_CONST_FILTER_CODE => Ok(StateEqualToConstFilter::try_deserialize(data)?),
             STATE_EQUAL_TO_VALUE_FILTER_CODE => Ok(StateEqualToValueFilter::try_deserialize(data)?),
-            INCREMENT_STATE_BY_CONST_FILTER_CODE => Ok(IncrementStateByConstFilter::try_deserialize(data)?),
-            INCREMENT_STATE_BY_VALUE_FILTER_CODE => Ok(IncrementStateByValueFilter::try_deserialize(data)?),
-            DECREMENT_STATE_BY_CONST_FILTER_CODE => Ok(DecrementStateByConstFilter::try_deserialize(data)?),
-            DECREMENT_STATE_BY_VALUE_FILTER_CODE => Ok(DecrementStateByValueFilter::try_deserialize(data)?),
+            INCREMENT_STATE_BY_CONST_FILTER_CODE => {
+                Ok(IncrementStateByConstFilter::try_deserialize(data)?)
+            }
+            INCREMENT_STATE_BY_VALUE_FILTER_CODE => {
+                Ok(IncrementStateByValueFilter::try_deserialize(data)?)
+            }
+            DECREMENT_STATE_BY_CONST_FILTER_CODE => {
+                Ok(DecrementStateByConstFilter::try_deserialize(data)?)
+            }
+            DECREMENT_STATE_BY_VALUE_FILTER_CODE => {
+                Ok(DecrementStateByValueFilter::try_deserialize(data)?)
+            }
             SET_STATE_TO_CONST_FILTER_CODE => Ok(SetStateToConstFilter::try_deserialize(data)?),
             SET_STATE_TO_VALUE_FILTER_CODE => Ok(SetStateToValueFilter::try_deserialize(data)?),
             FLIP_STATE_FILTER_CODE => Ok(FlipStateFilter::try_deserialize(data)?),
@@ -223,8 +234,12 @@ impl ConfigSerializer {
             NONE_PRODUCER_CODE => Ok(NoneProducer::try_deserialize(data)?),
             PACKET_PRODUCER_CODE => Ok(PacketProducer::try_deserialize(data)?),
             MESSAGE_PRODUCER_CODE => Ok(MessageProducer::try_deserialize(data)?),
-            BCM_CHANGE_BRIGHTNESS_PRODUCER_CODE => Ok(BcmChangeBrightnessProducer::try_deserialize(data)?),
-            BCM_CHANGE_BRIGHTNESS_STATE_PRODUCER_CODE => Ok(BcmChangeBrightnessStateProducer::try_deserialize(data)?),
+            BCM_CHANGE_BRIGHTNESS_PRODUCER_CODE => {
+                Ok(BcmChangeBrightnessProducer::try_deserialize(data)?)
+            }
+            BCM_CHANGE_BRIGHTNESS_STATE_PRODUCER_CODE => {
+                Ok(BcmChangeBrightnessStateProducer::try_deserialize(data)?)
+            }
             _ => Err(ConfigSerializerError::UnknownProducer),
         }
     }

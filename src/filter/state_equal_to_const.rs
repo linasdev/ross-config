@@ -1,14 +1,14 @@
 extern crate alloc;
 
+use alloc::boxed::Box;
 use alloc::vec;
 use alloc::vec::Vec;
-use alloc::boxed::Box;
 use core::convert::TryInto;
 
 use crate::filter::{Filter, FilterError, STATE_EQUAL_TO_CONST_FILTER_CODE};
+use crate::serializer::{ConfigSerializerError, Serialize, TryDeserialize};
 use crate::state_manager::StateManager;
 use crate::{ExtractorValue, Value};
-use crate::serializer::{Serialize, TryDeserialize, ConfigSerializerError};
 
 #[repr(C)]
 #[derive(Debug, PartialEq)]
@@ -140,53 +140,30 @@ mod tests {
     fn serialize_test() {
         let filter = StateEqualToConstFilter::new(0xabab_abab, Value::U32(0xffff_ffff));
 
-        let expected_data = vec![
-            0xab,
-            0xab,
-            0xab,
-            0xab,
-            0x02,
-            0xff,
-            0xff,
-            0xff,
-            0xff,
-        ];
+        let expected_data = vec![0xab, 0xab, 0xab, 0xab, 0x02, 0xff, 0xff, 0xff, 0xff];
 
         assert_eq!(filter.serialize(), expected_data);
     }
 
     #[test]
     fn deserialize_test() {
-        let data = vec![
-            0xab,
-            0xab,
-            0xab,
-            0xab,
-            0x02,
-            0xff,
-            0xff,
-            0xff,
-            0xff,
-        ];
+        let data = vec![0xab, 0xab, 0xab, 0xab, 0x02, 0xff, 0xff, 0xff, 0xff];
 
-        let filter = Box::new(StateEqualToConstFilter::new(0xabab_abab, Value::U32(0xffff_ffff)));
+        let filter = Box::new(StateEqualToConstFilter::new(
+            0xabab_abab,
+            Value::U32(0xffff_ffff),
+        ));
 
         assert_eq!(StateEqualToConstFilter::try_deserialize(&data), Ok(filter));
     }
 
     #[test]
     fn deserialize_wrong_size_test() {
-        let data = vec![
-            0xab,
-            0xab,
-            0xab,
-            0xab,
-            0x02,
-            0xff,
-            0xff,
-            0xff,
-        ];
+        let data = vec![0xab, 0xab, 0xab, 0xab, 0x02, 0xff, 0xff, 0xff];
 
-        assert_eq!(StateEqualToConstFilter::try_deserialize(&data), Err(ConfigSerializerError::WrongSize));
+        assert_eq!(
+            StateEqualToConstFilter::try_deserialize(&data),
+            Err(ConfigSerializerError::WrongSize)
+        );
     }
 }

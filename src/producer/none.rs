@@ -1,15 +1,15 @@
 extern crate alloc;
 
+use alloc::boxed::Box;
 use alloc::vec;
 use alloc::vec::Vec;
-use alloc::boxed::Box;
 
 use ross_protocol::packet::Packet;
 
 use crate::producer::{Producer, ProducerError, NONE_PRODUCER_CODE};
+use crate::serializer::{ConfigSerializerError, Serialize, TryDeserialize};
 use crate::state_manager::StateManager;
 use crate::ExtractorValue;
-use crate::serializer::{Serialize, TryDeserialize, ConfigSerializerError};
 
 #[repr(C)]
 #[derive(Debug, PartialEq)]

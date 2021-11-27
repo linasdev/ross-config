@@ -1,14 +1,14 @@
 extern crate alloc;
 
+use alloc::boxed::Box;
 use alloc::vec;
 use alloc::vec::Vec;
-use alloc::boxed::Box;
 use core::convert::TryInto;
 
 use crate::filter::{Filter, FilterError, STATE_EQUAL_TO_VALUE_FILTER_CODE};
+use crate::serializer::{ConfigSerializerError, Serialize, TryDeserialize};
 use crate::state_manager::StateManager;
 use crate::{ExtractorValue, Value};
-use crate::serializer::{Serialize, TryDeserialize, ConfigSerializerError};
 
 #[repr(C)]
 #[derive(Debug, PartialEq)]
@@ -71,9 +71,7 @@ impl TryDeserialize for StateEqualToValueFilter {
 
         let state_index = u32::from_be_bytes(data[0..=3].try_into().unwrap());
 
-        Ok(Box::new(Self {
-            state_index,
-        }))
+        Ok(Box::new(Self { state_index }))
     }
 }
 
@@ -149,24 +147,14 @@ mod tests {
     fn serialize_test() {
         let filter = StateEqualToValueFilter::new(0xabab_abab);
 
-        let expected_data = vec![
-            0xab,
-            0xab,
-            0xab,
-            0xab,
-        ];
+        let expected_data = vec![0xab, 0xab, 0xab, 0xab];
 
         assert_eq!(filter.serialize(), expected_data);
     }
 
     #[test]
     fn deserialize_test() {
-        let data = vec![
-            0xab,
-            0xab,
-            0xab,
-            0xab,
-        ];
+        let data = vec![0xab, 0xab, 0xab, 0xab];
 
         let filter = Box::new(StateEqualToValueFilter::new(0xabab_abab));
 
@@ -175,12 +163,11 @@ mod tests {
 
     #[test]
     fn deserialize_wrong_size_test() {
-        let data = vec![
-            0xab,
-            0xab,
-            0xab,
-        ];
+        let data = vec![0xab, 0xab, 0xab];
 
-        assert_eq!(StateEqualToValueFilter::try_deserialize(&data), Err(ConfigSerializerError::WrongSize));
+        assert_eq!(
+            StateEqualToValueFilter::try_deserialize(&data),
+            Err(ConfigSerializerError::WrongSize)
+        );
     }
 }

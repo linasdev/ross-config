@@ -1,15 +1,17 @@
 extern crate alloc;
 
+use alloc::boxed::Box;
 use alloc::vec;
 use alloc::vec::Vec;
-use alloc::boxed::Box;
 use core::convert::TryInto;
 
 use ross_protocol::packet::Packet;
 
-use crate::extractor::{Extractor, ExtractorError, EVENT_CODE_EXTRACTOR_CODE, EVENT_PRODUCER_ADDRESS_EXTRACTOR_CODE};
+use crate::extractor::{
+    Extractor, ExtractorError, EVENT_CODE_EXTRACTOR_CODE, EVENT_PRODUCER_ADDRESS_EXTRACTOR_CODE,
+};
+use crate::serializer::{ConfigSerializerError, Serialize, TryDeserialize};
 use crate::ExtractorValue;
-use crate::serializer::{Serialize, TryDeserialize, ConfigSerializerError};
 
 #[repr(C)]
 #[derive(Debug, PartialEq)]
@@ -196,6 +198,9 @@ mod tests {
 
         let extractor = Box::new(EventProducerAddressExtractor::new());
 
-        assert_eq!(EventProducerAddressExtractor::try_deserialize(&data), Ok(extractor));
+        assert_eq!(
+            EventProducerAddressExtractor::try_deserialize(&data),
+            Ok(extractor)
+        );
     }
 }

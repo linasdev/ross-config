@@ -1,18 +1,21 @@
 extern crate alloc;
 
+use alloc::boxed::Box;
 use alloc::vec;
 use alloc::vec::Vec;
-use alloc::boxed::Box;
 use core::convert::TryInto;
 
 use ross_protocol::convert_packet::ConvertPacket;
 use ross_protocol::event::bcm::BcmChangeBrightnessEvent;
 use ross_protocol::packet::Packet;
 
-use crate::producer::{Producer, ProducerError, BCM_CHANGE_BRIGHTNESS_PRODUCER_CODE, BCM_CHANGE_BRIGHTNESS_STATE_PRODUCER_CODE};
+use crate::producer::{
+    Producer, ProducerError, BCM_CHANGE_BRIGHTNESS_PRODUCER_CODE,
+    BCM_CHANGE_BRIGHTNESS_STATE_PRODUCER_CODE,
+};
+use crate::serializer::{ConfigSerializerError, Serialize, TryDeserialize};
 use crate::state_manager::StateManager;
 use crate::{ExtractorValue, Value};
-use crate::serializer::{Serialize, TryDeserialize, ConfigSerializerError};
 
 #[repr(C)]
 #[derive(Debug, PartialEq)]
@@ -204,44 +207,35 @@ mod tests {
         );
     }
 
-
     #[test]
     fn change_brightness_serialize_test() {
         let producer = BcmChangeBrightnessProducer::new(0xabab, 0x01, 0x23);
 
-        let expected_data = vec![
-            0xab,
-            0xab,
-            0x01,
-            0x23,
-        ];
+        let expected_data = vec![0xab, 0xab, 0x01, 0x23];
 
         assert_eq!(producer.serialize(), expected_data);
     }
 
     #[test]
     fn change_brightness_deserialize_test() {
-        let data = vec![
-            0xab,
-            0xab,
-            0x01,
-            0x23,
-        ];
+        let data = vec![0xab, 0xab, 0x01, 0x23];
 
         let producer = Box::new(BcmChangeBrightnessProducer::new(0xabab, 0x01, 0x23));
 
-        assert_eq!(BcmChangeBrightnessProducer::try_deserialize(&data), Ok(producer));
+        assert_eq!(
+            BcmChangeBrightnessProducer::try_deserialize(&data),
+            Ok(producer)
+        );
     }
 
     #[test]
     fn change_brightness_deserialize_wrong_size_test() {
-        let data = vec![
-            0xab,
-            0xab,
-            0x01,
-        ];
+        let data = vec![0xab, 0xab, 0x01];
 
-        assert_eq!(BcmChangeBrightnessProducer::try_deserialize(&data), Err(ConfigSerializerError::WrongSize));
+        assert_eq!(
+            BcmChangeBrightnessProducer::try_deserialize(&data),
+            Err(ConfigSerializerError::WrongSize)
+        );
     }
 
     #[test]
@@ -271,47 +265,34 @@ mod tests {
     fn change_brightness_state_serialize_test() {
         let producer = BcmChangeBrightnessStateProducer::new(0xabab, 0x01, 0xffff_ffff);
 
-        let expected_data = vec![
-            0xab,
-            0xab,
-            0x01,
-            0xff,
-            0xff,
-            0xff,
-            0xff,
-        ];
+        let expected_data = vec![0xab, 0xab, 0x01, 0xff, 0xff, 0xff, 0xff];
 
         assert_eq!(producer.serialize(), expected_data);
     }
 
     #[test]
     fn change_brightness_state_deserialize_test() {
-        let data = vec![
-            0xab,
-            0xab,
+        let data = vec![0xab, 0xab, 0x01, 0xff, 0xff, 0xff, 0xff];
+
+        let producer = Box::new(BcmChangeBrightnessStateProducer::new(
+            0xabab,
             0x01,
-            0xff,
-            0xff,
-            0xff,
-            0xff,
-        ];
+            0xffff_ffff,
+        ));
 
-        let producer = Box::new(BcmChangeBrightnessStateProducer::new(0xabab, 0x01, 0xffff_ffff));
-
-        assert_eq!(BcmChangeBrightnessStateProducer::try_deserialize(&data), Ok(producer));
+        assert_eq!(
+            BcmChangeBrightnessStateProducer::try_deserialize(&data),
+            Ok(producer)
+        );
     }
 
     #[test]
     fn change_brightness_state_deserialize_wrong_size_test() {
-        let data = vec![
-            0xab,
-            0xab,
-            0x01,
-            0xff,
-            0xff,
-            0xff,
-        ];
+        let data = vec![0xab, 0xab, 0x01, 0xff, 0xff, 0xff];
 
-        assert_eq!(BcmChangeBrightnessStateProducer::try_deserialize(&data), Err(ConfigSerializerError::WrongSize));
+        assert_eq!(
+            BcmChangeBrightnessStateProducer::try_deserialize(&data),
+            Err(ConfigSerializerError::WrongSize)
+        );
     }
 }

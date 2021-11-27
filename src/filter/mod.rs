@@ -1,9 +1,9 @@
 use core::fmt::Debug;
 use downcast_rs::{impl_downcast, Downcast};
 
+use crate::serializer::Serialize;
 use crate::state_manager::StateManager;
 use crate::ExtractorValue;
-use crate::serializer::Serialize;
 
 mod value_equal_to_const;
 pub use value_equal_to_const::*;

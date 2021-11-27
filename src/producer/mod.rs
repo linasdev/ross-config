@@ -3,9 +3,9 @@ use downcast_rs::{impl_downcast, Downcast};
 
 use ross_protocol::packet::Packet;
 
+use crate::serializer::Serialize;
 use crate::state_manager::StateManager;
 use crate::ExtractorValue;
-use crate::serializer::Serialize;
 
 mod none;
 pub use none::*;

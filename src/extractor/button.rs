@@ -1,16 +1,16 @@
 extern crate alloc;
 
+use alloc::boxed::Box;
 use alloc::vec;
 use alloc::vec::Vec;
-use alloc::boxed::Box;
 
 use ross_protocol::convert_packet::ConvertPacket;
 use ross_protocol::event::button::{ButtonPressedEvent, ButtonReleasedEvent};
 use ross_protocol::packet::Packet;
 
 use crate::extractor::{Extractor, ExtractorError, BUTTON_INDEX_EXTRACTOR_CODE};
+use crate::serializer::{ConfigSerializerError, Serialize, TryDeserialize};
 use crate::ExtractorValue;
-use crate::serializer::{Serialize, TryDeserialize, ConfigSerializerError};
 
 #[repr(C)]
 #[derive(Debug, PartialEq)]

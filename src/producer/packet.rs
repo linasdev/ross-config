@@ -1,16 +1,16 @@
 extern crate alloc;
 
+use alloc::boxed::Box;
 use alloc::vec;
 use alloc::vec::Vec;
-use alloc::boxed::Box;
 use core::convert::TryInto;
 
 use ross_protocol::packet::Packet;
 
 use crate::producer::{Producer, ProducerError, PACKET_PRODUCER_CODE};
+use crate::serializer::{ConfigSerializerError, Serialize, TryDeserialize};
 use crate::state_manager::StateManager;
 use crate::ExtractorValue;
-use crate::serializer::{Serialize, TryDeserialize, ConfigSerializerError};
 
 #[repr(C)]
 #[derive(Debug, PartialEq)]
@@ -51,10 +51,7 @@ impl Serialize for PacketProducer {
     fn serialize(&self) -> Vec<u8> {
         let receiver_address = self.receiver_address.to_be_bytes();
 
-        vec![
-            receiver_address[0],
-            receiver_address[1],
-        ]
+        vec![receiver_address[0], receiver_address[1]]
     }
 }
 
@@ -66,9 +63,7 @@ impl TryDeserialize for PacketProducer {
 
         let receiver_address = u16::from_be_bytes(data[0..=1].try_into().unwrap());
 
-        Ok(Box::new(Self {
-            receiver_address
-        }))
+        Ok(Box::new(Self { receiver_address }))
     }
 }
 
@@ -112,20 +107,14 @@ mod tests {
     fn serialize_test() {
         let producer = PacketProducer::new(0xabab);
 
-        let expected_data = vec![
-            0xab,
-            0xab,
-        ];
+        let expected_data = vec![0xab, 0xab];
 
         assert_eq!(producer.serialize(), expected_data);
     }
 
     #[test]
     fn deserialize_test() {
-        let data = vec![
-            0xab,
-            0xab,
-        ];
+        let data = vec![0xab, 0xab];
 
         let producer = Box::new(PacketProducer::new(0xabab));
 
@@ -134,10 +123,11 @@ mod tests {
 
     #[test]
     fn deserialize_wrong_size_test() {
-        let data = vec![
-            0xab,
-        ];
+        let data = vec![0xab];
 
-        assert_eq!(PacketProducer::try_deserialize(&data), Err(ConfigSerializerError::WrongSize));
+        assert_eq!(
+            PacketProducer::try_deserialize(&data),
+            Err(ConfigSerializerError::WrongSize)
+        );
     }
 }

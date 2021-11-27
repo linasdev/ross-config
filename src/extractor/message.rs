@@ -1,15 +1,17 @@
 extern crate alloc;
 
+use alloc::boxed::Box;
 use alloc::vec;
 use alloc::vec::Vec;
-use alloc::boxed::Box;
 use ross_protocol::convert_packet::ConvertPacket;
 use ross_protocol::event::message::{MessageEvent, MessageValue};
 use ross_protocol::packet::Packet;
 
-use crate::extractor::{Extractor, ExtractorError, MESSAGE_CODE_EXTRACTOR_CODE, MESSAGE_VALUE_EXTRACTOR_CODE};
+use crate::extractor::{
+    Extractor, ExtractorError, MESSAGE_CODE_EXTRACTOR_CODE, MESSAGE_VALUE_EXTRACTOR_CODE,
+};
+use crate::serializer::{ConfigSerializerError, Serialize, TryDeserialize};
 use crate::ExtractorValue;
-use crate::serializer::{Serialize, TryDeserialize, ConfigSerializerError};
 
 #[repr(C)]
 #[derive(Debug, PartialEq)]
