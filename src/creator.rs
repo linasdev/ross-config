@@ -27,8 +27,14 @@ impl Creator {
         state_manager: &mut StateManager,
         device_address: u16,
     ) -> Result<Option<Packet>, CreatorError> {
-        let value = self.extractor.extract(packet).map_err(|err| CreatorError::ExtractorError(err))?;
-        let new_packet = self.producer.produce(value, state_manager, device_address).map_err(|err| CreatorError::ProducerError(err))?;
+        let value = self
+            .extractor
+            .extract(packet)
+            .map_err(|err| CreatorError::ExtractorError(err))?;
+        let new_packet = self
+            .producer
+            .produce(value, state_manager, device_address)
+            .map_err(|err| CreatorError::ProducerError(err))?;
 
         Ok(new_packet)
     }

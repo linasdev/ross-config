@@ -20,9 +20,9 @@ impl Extractor for EventProducerAddressExtractor {
         if packet.data.len() < 4 {
             Err(ExtractorError::PacketTooShort)
         } else {
-            Ok(
-                ExtractorValue::U16(u16::from_be_bytes(packet.data[2..=3].try_into().unwrap()))
-            )
+            Ok(ExtractorValue::U16(u16::from_be_bytes(
+                packet.data[2..=3].try_into().unwrap(),
+            )))
         }
     }
 }
@@ -64,11 +64,14 @@ mod tests {
             0x00, // event code
             0x00, // event code
             0x01, // transmitter address
-            // missing byte
+                  // missing byte
         ];
 
         let extractor = EventProducerAddressExtractor::new();
 
-        assert_eq!(extractor.extract(&packet), Err(ExtractorError::PacketTooShort));
+        assert_eq!(
+            extractor.extract(&packet),
+            Err(ExtractorError::PacketTooShort)
+        );
     }
 }

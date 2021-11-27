@@ -15,7 +15,11 @@ impl FlipFlopFilter {
 }
 
 impl Filter for FlipFlopFilter {
-    fn filter(&mut self, _value: &ExtractorValue, _state_manager: &mut StateManager) -> Result<bool, FilterError> {
+    fn filter(
+        &mut self,
+        _value: &ExtractorValue,
+        _state_manager: &mut StateManager,
+    ) -> Result<bool, FilterError> {
         let current_state = !self.state;
         self.state = current_state;
 

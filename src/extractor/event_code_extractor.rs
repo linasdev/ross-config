@@ -20,9 +20,9 @@ impl Extractor for EventCodeExtractor {
         if packet.data.len() < 2 {
             Err(ExtractorError::PacketTooShort)
         } else {
-            Ok(
-                ExtractorValue::U16(u16::from_be_bytes(packet.data[0..=1].try_into().unwrap()))
-            )
+            Ok(ExtractorValue::U16(u16::from_be_bytes(
+                packet.data[0..=1].try_into().unwrap(),
+            )))
         }
     }
 }
@@ -52,10 +52,7 @@ mod tests {
 
         let extractor = EventCodeExtractor::new();
 
-        assert_eq!(
-            extractor.extract(&packet),
-            Ok(ExtractorValue::U16(0x0000))
-        );
+        assert_eq!(extractor.extract(&packet), Ok(ExtractorValue::U16(0x0000)));
     }
 
     #[test]
@@ -63,11 +60,14 @@ mod tests {
         let mut packet = PACKET;
         packet.data = vec![
             0x00, // event code
-            // missing byte
+                 // missing byte
         ];
 
         let extractor = EventCodeExtractor::new();
 
-        assert_eq!(extractor.extract(&packet), Err(ExtractorError::PacketTooShort));
+        assert_eq!(
+            extractor.extract(&packet),
+            Err(ExtractorError::PacketTooShort)
+        );
     }
 }

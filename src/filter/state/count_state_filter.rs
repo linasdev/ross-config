@@ -19,7 +19,11 @@ impl CountStateFilter {
 }
 
 impl Filter for CountStateFilter {
-    fn filter(&mut self, _value: &ExtractorValue, state_manager: &mut StateManager) -> Result<bool, FilterError> {
+    fn filter(
+        &mut self,
+        _value: &ExtractorValue,
+        state_manager: &mut StateManager,
+    ) -> Result<bool, FilterError> {
         let current_state = state_manager.get_value(self.state_index);
 
         let current_state = match current_state {
@@ -107,6 +111,9 @@ mod tests {
 
         let mut filter = CountStateFilter::new(0, 5);
 
-        assert_eq!(filter.filter(&ExtractorValue::None, &mut state_manager), Err(FilterError::WrongStateType));
+        assert_eq!(
+            filter.filter(&ExtractorValue::None, &mut state_manager),
+            Err(FilterError::WrongStateType)
+        );
     }
 }

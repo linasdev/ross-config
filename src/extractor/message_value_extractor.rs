@@ -1,6 +1,6 @@
-use ross_protocol::packet::Packet;
-use ross_protocol::event::message::{MessageEvent, MessageValue};
 use ross_protocol::convert_packet::ConvertPacket;
+use ross_protocol::event::message::{MessageEvent, MessageValue};
+use ross_protocol::packet::Packet;
 
 use crate::extractor::{Extractor, ExtractorError};
 use crate::ExtractorValue;
@@ -23,11 +23,11 @@ impl Extractor for MessageValueExtractor {
                     MessageValue::U8(value) => Ok(ExtractorValue::U8(value)),
                     MessageValue::U16(value) => Ok(ExtractorValue::U16(value)),
                     MessageValue::U32(value) => Ok(ExtractorValue::U32(value)),
-                    // Required because event.value is not guaranteed to be valid 
+                    // Required because event.value is not guaranteed to be valid
                     #[allow(unreachable_patterns)]
                     _ => Err(ExtractorError::ConvertValueError),
                 }
-            },
+            }
             Err(err) => Err(ExtractorError::ConvertPacketError(err)),
         }
     }
@@ -99,7 +99,10 @@ mod tests {
 
         let extractor = MessageValueExtractor::new();
 
-        assert_eq!(extractor.extract(&packet), Err(ExtractorError::ConvertValueError));
+        assert_eq!(
+            extractor.extract(&packet),
+            Err(ExtractorError::ConvertValueError)
+        );
     }
 
     #[test]
@@ -119,11 +122,14 @@ mod tests {
             0xff,                                     // value
             0xff,                                     // value
             0xff,                                     // value
-            // missing byte
+                                                      // missing byte
         ];
 
         let extractor = MessageValueExtractor::new();
 
-        assert!(matches!(extractor.extract(&packet), Err(ExtractorError::ConvertPacketError(_))));
+        assert!(matches!(
+            extractor.extract(&packet),
+            Err(ExtractorError::ConvertPacketError(_))
+        ));
     }
 }

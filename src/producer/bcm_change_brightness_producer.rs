@@ -65,10 +65,10 @@ mod tests {
         packet.data = vec![
             ((BCM_CHANGE_BRIGHTNESS_EVENT_CODE >> 8) & 0xff) as u8, // event code
             ((BCM_CHANGE_BRIGHTNESS_EVENT_CODE >> 0) & 0xff) as u8, // event code
-            0x00, // transmitter address
-            0x00, // transmitter address
-            0x01, // channel
-            0x02, // brightness
+            0x00,                                                   // transmitter address
+            0x00,                                                   // transmitter address
+            0x01,                                                   // channel
+            0x02,                                                   // brightness
         ];
 
         let state_manager = StateManager::new();

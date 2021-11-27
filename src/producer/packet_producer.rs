@@ -66,11 +66,7 @@ mod tests {
         let producer = PacketProducer::new(0xffff);
 
         assert_eq!(
-            producer.produce(
-                ExtractorValue::Packet(&packet),
-                &state_manager,
-                0x0123
-            ),
+            producer.produce(ExtractorValue::Packet(&packet), &state_manager, 0x0123),
             Ok(Some(expected_packet))
         );
     }

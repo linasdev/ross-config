@@ -1,6 +1,6 @@
-use ross_protocol::packet::Packet;
-use ross_protocol::event::message::MessageEvent;
 use ross_protocol::convert_packet::ConvertPacket;
+use ross_protocol::event::message::MessageEvent;
+use ross_protocol::packet::Packet;
 
 use crate::extractor::{Extractor, ExtractorError};
 use crate::ExtractorValue;
@@ -62,10 +62,7 @@ mod tests {
 
         let extractor = MessageCodeExtractor::new();
 
-        assert_eq!(
-            extractor.extract(&packet),
-            Ok(ExtractorValue::U16(0x0123))
-        );
+        assert_eq!(extractor.extract(&packet), Ok(ExtractorValue::U16(0x0123)));
     }
 
     #[test]
@@ -85,11 +82,14 @@ mod tests {
             0xff,                                     // value
             0xff,                                     // value
             0xff,                                     // value
-            // missing byte
+                                                      // missing byte
         ];
 
         let extractor = MessageCodeExtractor::new();
 
-        assert!(matches!(extractor.extract(&packet), Err(ExtractorError::ConvertPacketError(_))));
+        assert!(matches!(
+            extractor.extract(&packet),
+            Err(ExtractorError::ConvertPacketError(_))
+        ));
     }
 }

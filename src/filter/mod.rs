@@ -29,11 +29,15 @@ pub const BOOL_SET_STATE_FILTER_CODE: u16 = 0x0009;
 #[derive(Debug, PartialEq)]
 pub enum FilterError {
     WrongValueType,
-    WrongStateType
+    WrongStateType,
 }
 
 pub trait Filter: Downcast + Debug {
-    fn filter(&mut self, value: &ExtractorValue, state_manager: &mut StateManager) -> Result<bool, FilterError>;
+    fn filter(
+        &mut self,
+        value: &ExtractorValue,
+        state_manager: &mut StateManager,
+    ) -> Result<bool, FilterError>;
 }
 
 impl_downcast!(Filter);

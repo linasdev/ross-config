@@ -25,7 +25,7 @@ pub const PACKET_PRODUCER_CODE: u16 = 0x0003;
 #[derive(Debug, PartialEq)]
 pub enum ProducerError {
     WrongValueType,
-    WrongStateType
+    WrongStateType,
 }
 
 pub trait Producer: Downcast + Debug {

@@ -15,10 +15,14 @@ impl U16IsEqualFilter {
 }
 
 impl Filter for U16IsEqualFilter {
-    fn filter(&mut self, value: &ExtractorValue, _state_manager: &mut StateManager) -> Result<bool, FilterError> {
+    fn filter(
+        &mut self,
+        value: &ExtractorValue,
+        _state_manager: &mut StateManager,
+    ) -> Result<bool, FilterError> {
         let value = match value {
             ExtractorValue::U16(value) => value,
-            _ => return Err(FilterError::WrongValueType)
+            _ => return Err(FilterError::WrongValueType),
         };
 
         Ok(*value == self.value)
@@ -56,6 +60,9 @@ mod tests {
         let mut state_manager = StateManager::new();
         let mut filter = U16IsEqualFilter::new(0x0000);
 
-        assert_eq!(filter.filter(&ExtractorValue::U8(0x00), &mut state_manager), Err(FilterError::WrongValueType));
+        assert_eq!(
+            filter.filter(&ExtractorValue::U8(0x00), &mut state_manager),
+            Err(FilterError::WrongValueType)
+        );
     }
 }

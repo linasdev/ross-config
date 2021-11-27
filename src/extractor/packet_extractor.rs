@@ -46,6 +46,9 @@ mod tests {
 
         let extractor = PacketExtractor::new();
 
-        assert_eq!(extractor.extract(&packet), Ok(ExtractorValue::Packet(&packet)));
+        assert_eq!(
+            extractor.extract(&packet),
+            Ok(ExtractorValue::Packet(&packet))
+        );
     }
 }
