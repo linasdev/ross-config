@@ -27,7 +27,7 @@ impl Filter for ValueEqualToConstFilter {
             ExtractorValue::U16(value) => Ok(Value::U16(value) == self.required_value),
             ExtractorValue::U32(value) => Ok(Value::U32(value) == self.required_value),
             ExtractorValue::Bool(value) => Ok(Value::Bool(value) == self.required_value),
-            _ => Err(FilterError::WrongValueType)
+            _ => Err(FilterError::WrongValueType),
         }
     }
 }

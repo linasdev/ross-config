@@ -29,7 +29,7 @@ impl Filter for StateEqualToConstFilter {
             Some(Value::U16(value)) => Ok(Value::U16(*value) == self.required_value),
             Some(Value::U32(value)) => Ok(Value::U32(*value) == self.required_value),
             Some(Value::Bool(value)) => Ok(Value::Bool(*value) == self.required_value),
-            _ => Err(FilterError::WrongStateType)
+            _ => Err(FilterError::WrongStateType),
         }
     }
 }
