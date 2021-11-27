@@ -12,17 +12,17 @@ pub use none::*;
 mod packet;
 pub use packet::*;
 
-mod bcm;
-pub use bcm::*;
-
 mod message;
 pub use message::*;
 
+mod bcm;
+pub use bcm::*;
+
 pub const NONE_PRODUCER_CODE: u16 = 0x0000;
-pub const BCM_CHANGE_BRIGHTNESS_PRODUCER_CODE: u16 = 0x0001;
-pub const BCM_CHANGE_BRIGHTNESS_STATE_PRODUCER_CODE: u16 = 0x0002;
-pub const PACKET_PRODUCER_CODE: u16 = 0x0003;
-pub const MESSAGE_PRODUCER_CODE: u16 = 0x0004;
+pub const PACKET_PRODUCER_CODE: u16 = 0x0001;
+pub const MESSAGE_PRODUCER_CODE: u16 = 0x0002;
+pub const BCM_CHANGE_BRIGHTNESS_PRODUCER_CODE: u16 = 0x0003;
+pub const BCM_CHANGE_BRIGHTNESS_STATE_PRODUCER_CODE: u16 = 0x0004;
 
 #[derive(Debug, PartialEq)]
 pub enum ProducerError {
