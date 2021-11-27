@@ -382,6 +382,13 @@ impl ConfigSerializer {
             offset,
             filter_code
         );
+        impl_item_read!(
+            BOOL_FLIP_STATE_FILTER_CODE,
+            BoolFlipStateFilter,
+            data,
+            offset,
+            filter_code
+        );
         Err(ConfigSerializerError::UnknownFilter)
     }
 
@@ -422,6 +429,7 @@ impl ConfigSerializer {
         impl_item_write!(U8_IS_EQUAL_FILTER_CODE, U8IsEqualFilter, data, filter);
         impl_item_write!(U8_SET_STATE_FILTER_CODE, U8SetStateFilter, data, filter);
         impl_item_write!(U8_SET_STATE_FROM_VALUE_FILTER_CODE, U8SetFromValueStateFilter, data, filter);
+        impl_item_write!(BOOL_FLIP_STATE_FILTER_CODE, BoolFlipStateFilter, data, filter);
         Err(ConfigSerializerError::UnknownFilter)
     }
 

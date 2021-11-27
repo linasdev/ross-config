@@ -57,6 +57,37 @@ impl Filter for BoolSetStateFilter {
     }
 }
 
+#[repr(C)]
+#[derive(Debug)]
+pub struct BoolFlipStateFilter {
+    state_index: u32,
+}
+
+impl BoolFlipStateFilter {
+    pub fn new(state_index: u32) -> Self {
+        Self { state_index }
+    }
+}
+
+impl Filter for BoolFlipStateFilter {
+    fn filter(
+        &mut self,
+        _value: &ExtractorValue,
+        state_manager: &mut StateManager,
+    ) -> Result<bool, FilterError> {
+        let current_state = state_manager.get_value(self.state_index);
+
+        let current_state = match current_state {
+            Some(StateValue::Bool(value)) => *value,
+            _ => return Err(FilterError::WrongStateType),
+        };
+
+        state_manager.set_value(self.state_index, StateValue::Bool(!current_state));
+
+        Ok(true)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -101,7 +132,7 @@ mod tests {
     }
 
     #[test]
-    fn set_state_test() {
+    fn set_test() {
         let mut state_manager = StateManager::new();
         state_manager.set_value(0, StateValue::Bool(true));
 
@@ -114,6 +145,40 @@ mod tests {
         assert_eq!(
             *state_manager.get_value(0).unwrap(),
             StateValue::Bool(false)
+        );
+    }
+
+    #[test]
+    fn flip_initial_true_test() {
+        let mut state_manager = StateManager::new();
+        state_manager.set_value(0, StateValue::Bool(true));
+
+        let mut filter = BoolFlipStateFilter::new(0);
+
+        assert_eq!(
+            filter.filter(&ExtractorValue::None, &mut state_manager),
+            Ok(true)
+        );
+        assert_eq!(
+            *state_manager.get_value(0).unwrap(),
+            StateValue::Bool(false)
+        );
+    }
+
+    #[test]
+    fn flip_initial_false_test() {
+        let mut state_manager = StateManager::new();
+        state_manager.set_value(0, StateValue::Bool(false));
+
+        let mut filter = BoolFlipStateFilter::new(0);
+
+        assert_eq!(
+            filter.filter(&ExtractorValue::None, &mut state_manager),
+            Ok(true)
+        );
+        assert_eq!(
+            *state_manager.get_value(0).unwrap(),
+            StateValue::Bool(true)
         );
     }
 }
