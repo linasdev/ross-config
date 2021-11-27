@@ -58,6 +58,34 @@ impl Filter for U8SetStateFilter {
     }
 }
 
+#[repr(C)]
+#[derive(Debug)]
+pub struct U8SetFromValueStateFilter {
+    state_index: u32,
+}
+
+impl U8SetFromValueStateFilter {
+    pub fn new(state_index: u32) -> Self {
+        Self { state_index }
+    }
+}
+
+impl Filter for U8SetFromValueStateFilter {
+    fn filter(
+        &mut self,
+        value: &ExtractorValue,
+        state_manager: &mut StateManager,
+    ) -> Result<bool, FilterError> {
+        match value {
+            ExtractorValue::U8(value) => {
+                state_manager.set_value(self.state_index, StateValue::U8(*value));
+                Ok(true)
+            },
+            _ => Err(FilterError::WrongValueType),
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -127,6 +155,36 @@ mod tests {
         assert_eq!(
             *state_manager.get_value(0).unwrap(),
             StateValue::U8(0xff)
+        );
+    }
+
+    #[test]
+    fn set_from_value_test() {
+        let mut state_manager = StateManager::new();
+        state_manager.set_value(0, StateValue::U8(0x00));
+
+        let mut filter = U8SetFromValueStateFilter::new(0);
+
+        assert_eq!(
+            filter.filter(&ExtractorValue::U8(0xff), &mut state_manager),
+            Ok(true)
+        );
+        assert_eq!(
+            *state_manager.get_value(0).unwrap(),
+            StateValue::U8(0xff)
+        );
+    }
+
+    #[test]
+    fn set_from_value_wrong_value_type_test() {
+        let mut state_manager = StateManager::new();
+        state_manager.set_value(0, StateValue::U8(0x00));
+
+        let mut filter = U8SetFromValueStateFilter::new(0);
+
+        assert_eq!(
+            filter.filter(&ExtractorValue::U16(0x0000), &mut state_manager),
+            Err(FilterError::WrongValueType)
         );
     }
 }
