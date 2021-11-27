@@ -341,13 +341,6 @@ impl ConfigSerializer {
         );
         impl_item_read!(COUNT_FILTER_CODE, CountFilter, data, offset, filter_code);
         impl_item_read!(
-            COUNT_STATE_FILTER_CODE,
-            CountStateFilter,
-            data,
-            offset,
-            filter_code
-        );
-        impl_item_read!(
             BOOL_IS_EQUAL_STATE_FILTER_CODE,
             BoolIsEqualStateFilter,
             data,
@@ -418,7 +411,6 @@ impl ConfigSerializer {
         impl_item_write!(U32_SET_STATE_FILTER_CODE, U32SetStateFilter, data, filter);
         impl_item_write!(FLIP_FLOP_FILTER_CODE, FlipFlopFilter, data, filter);
         impl_item_write!(COUNT_FILTER_CODE, CountFilter, data, filter);
-        impl_item_write!(COUNT_STATE_FILTER_CODE, CountStateFilter, data, filter);
         impl_item_write!(
             BOOL_IS_EQUAL_STATE_FILTER_CODE,
             BoolIsEqualStateFilter,
