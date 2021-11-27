@@ -56,11 +56,11 @@ impl Producer for BcmChangeBrightnessProducer {
 
 impl Serialize for BcmChangeBrightnessProducer {
     fn serialize(&self) -> Vec<u8> {
-        let bcm_address_bytes = self.bcm_address.to_be_bytes();
+        let bcm_address = self.bcm_address.to_be_bytes();
 
         vec![
-            bcm_address_bytes[0],
-            bcm_address_bytes[1],
+            bcm_address[0],
+            bcm_address[1],
             self.channel,
             self.brightness,
         ]
@@ -132,17 +132,17 @@ impl Producer for BcmChangeBrightnessStateProducer {
 
 impl Serialize for BcmChangeBrightnessStateProducer {
     fn serialize(&self) -> Vec<u8> {
-        let bcm_address_bytes = self.bcm_address.to_be_bytes();
-        let state_index_bytes = self.state_index.to_be_bytes();
+        let bcm_address = self.bcm_address.to_be_bytes();
+        let state_index = self.state_index.to_be_bytes();
 
         vec![
-            bcm_address_bytes[0],
-            bcm_address_bytes[1],
+            bcm_address[0],
+            bcm_address[1],
             self.channel,
-            state_index_bytes[0],
-            state_index_bytes[1],
-            state_index_bytes[2],
-            state_index_bytes[3],
+            state_index[0],
+            state_index[1],
+            state_index[2],
+            state_index[3],
         ]
     }
 }

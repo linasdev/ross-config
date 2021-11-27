@@ -56,19 +56,19 @@ impl Producer for MessageProducer {
 
 impl Serialize for MessageProducer {
     fn serialize(&self) -> Vec<u8> {
-        let receiver_address_bytes = self.receiver_address.to_be_bytes();
-        let code_bytes = self.code.to_be_bytes();
+        let receiver_address = self.receiver_address.to_be_bytes();
+        let code = self.code.to_be_bytes();
 
         let mut data = vec![
-            receiver_address_bytes[0],
-            receiver_address_bytes[1],
-            code_bytes[0],
-            code_bytes[1],
+            receiver_address[0],
+            receiver_address[1],
+            code[0],
+            code[1],
         ];
 
-        let mut value_bytes = self.value.serialize();
+        let mut value = self.value.serialize();
 
-        data.append(&mut value_bytes);
+        data.append(&mut value);
 
         return data;
     }
@@ -76,7 +76,7 @@ impl Serialize for MessageProducer {
 
 impl TryDeserialize for MessageProducer {
     fn try_deserialize(data: &[u8]) -> Result<Box<Self>, ConfigSerializerError> {
-        if data.len() < 9 {
+        if data.len() < 6 {
             return Err(ConfigSerializerError::WrongSize);
         }
 

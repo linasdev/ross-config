@@ -49,11 +49,11 @@ impl Producer for PacketProducer {
 
 impl Serialize for PacketProducer {
     fn serialize(&self) -> Vec<u8> {
-        let bytes = self.receiver_address.to_be_bytes();
+        let receiver_address = self.receiver_address.to_be_bytes();
 
         vec![
-            bytes[0],
-            bytes[1],
+            receiver_address[0],
+            receiver_address[1],
         ]
     }
 }
