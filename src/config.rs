@@ -317,29 +317,29 @@ impl ConfigSerializer {
             filter_code
         );
         impl_item_read!(
-            STATE_INCREMENT_BY_CONST_FILTER_CODE,
-            StateIncrementByConstFilter,
+            INCREMENT_STATE_BY_CONST_FILTER_CODE,
+            IncrementStateByConstFilter,
             data,
             offset,
             filter_code
         );
         impl_item_read!(
-            STATE_INCREMENT_BY_VALUE_FILTER_CODE,
-            StateIncrementByValueFilter,
+            INCREMENT_STATE_BY_VALUE_FILTER_CODE,
+            IncrementStateByValueFilter,
             data,
             offset,
             filter_code
         );
         impl_item_read!(
-            STATE_DECREMENT_BY_CONST_FILTER_CODE,
-            StateDecrementByConstFilter,
+            DECREMENT_STATE_BY_CONST_FILTER_CODE,
+            DecrementStateByConstFilter,
             data,
             offset,
             filter_code
         );
         impl_item_read!(
-            STATE_DECREMENT_BY_VALUE_FILTER_CODE,
-            StateDecrementByValueFilter,
+            DECREMENT_STATE_BY_VALUE_FILTER_CODE,
+            DecrementStateByValueFilter,
             data,
             offset,
             filter_code
@@ -391,26 +391,26 @@ impl ConfigSerializer {
             filter
         );
         impl_item_write!(
-            STATE_INCREMENT_BY_CONST_FILTER_CODE,
-            StateIncrementByConstFilter,
+            INCREMENT_STATE_BY_CONST_FILTER_CODE,
+            IncrementStateByConstFilter,
             data,
             filter
         );
         impl_item_write!(
-            STATE_INCREMENT_BY_VALUE_FILTER_CODE,
-            StateIncrementByValueFilter,
+            INCREMENT_STATE_BY_VALUE_FILTER_CODE,
+            IncrementStateByValueFilter,
             data,
             filter
         );
         impl_item_write!(
-            STATE_DECREMENT_BY_CONST_FILTER_CODE,
-            StateDecrementByConstFilter,
+            DECREMENT_STATE_BY_CONST_FILTER_CODE,
+            DecrementStateByConstFilter,
             data,
             filter
         );
         impl_item_write!(
-            STATE_DECREMENT_BY_VALUE_FILTER_CODE,
-            StateDecrementByValueFilter,
+            DECREMENT_STATE_BY_VALUE_FILTER_CODE,
+            DecrementStateByValueFilter,
             data,
             filter
         );

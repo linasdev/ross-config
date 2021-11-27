@@ -4,21 +4,21 @@ use crate::{ExtractorValue, Value};
 
 #[repr(C)]
 #[derive(Debug)]
-pub struct StateIncrementByConstFilter {
+pub struct DecrementStateByConstFilter {
     state_index: u32,
-    increment_value: Value,
+    decrement_value: Value,
 }
 
-impl StateIncrementByConstFilter {
-    pub fn new(state_index: u32, increment_value: Value) -> Self {
+impl DecrementStateByConstFilter {
+    pub fn new(state_index: u32, decrement_value: Value) -> Self {
         Self {
             state_index,
-            increment_value,
+            decrement_value,
         }
     }
 }
 
-impl Filter for StateIncrementByConstFilter {
+impl Filter for DecrementStateByConstFilter {
     fn filter(
         &mut self,
         _value: &ExtractorValue,
@@ -26,16 +26,16 @@ impl Filter for StateIncrementByConstFilter {
     ) -> Result<bool, FilterError> {
         let new_value = match (
             state_manager.get_value(self.state_index),
-            &self.increment_value,
+            &self.decrement_value,
         ) {
-            (Some(Value::U8(current_state)), Value::U8(increment_value)) => {
-                Value::U8(current_state.wrapping_add(*increment_value))
+            (Some(Value::U8(current_state)), Value::U8(decrement_value)) => {
+                Value::U8(current_state.wrapping_sub(*decrement_value))
             }
-            (Some(Value::U16(current_state)), Value::U16(increment_value)) => {
-                Value::U16(current_state.wrapping_add(*increment_value))
+            (Some(Value::U16(current_state)), Value::U16(decrement_value)) => {
+                Value::U16(current_state.wrapping_sub(*decrement_value))
             }
-            (Some(Value::U32(current_state)), Value::U32(increment_value)) => {
-                Value::U32(current_state.wrapping_add(*increment_value))
+            (Some(Value::U32(current_state)), Value::U32(decrement_value)) => {
+                Value::U32(current_state.wrapping_sub(*decrement_value))
             }
             _ => return Err(FilterError::WrongStateType),
         };
@@ -51,28 +51,11 @@ mod tests {
     use super::*;
 
     #[test]
-    fn initial_zero_increment_by_five_test() {
+    fn initial_five_decrement_by_five_test() {
         let mut state_manager = StateManager::new();
-        state_manager.set_value(0, Value::U32(0x0000_0000));
+        state_manager.set_value(0, Value::U32(0x0000_0005));
 
-        let mut filter = StateIncrementByConstFilter::new(0, Value::U32(0x0000_0005));
-
-        assert_eq!(
-            filter.filter(&ExtractorValue::None, &mut state_manager),
-            Ok(true),
-        );
-        assert_eq!(
-            *state_manager.get_value(0).unwrap(),
-            Value::U32(0x0000_0005),
-        );
-    }
-
-    #[test]
-    fn initial_max_increment_by_one_test() {
-        let mut state_manager = StateManager::new();
-        state_manager.set_value(0, Value::U32(0xffff_ffff));
-
-        let mut filter = StateIncrementByConstFilter::new(0, Value::U32(0x0000_0001));
+        let mut filter = DecrementStateByConstFilter::new(0, Value::U32(0x0000_0005));
 
         assert_eq!(
             filter.filter(&ExtractorValue::None, &mut state_manager),
@@ -85,11 +68,28 @@ mod tests {
     }
 
     #[test]
+    fn initial_zero_decrement_by_one_test() {
+        let mut state_manager = StateManager::new();
+        state_manager.set_value(0, Value::U32(0x0000_0000));
+
+        let mut filter = DecrementStateByConstFilter::new(0, Value::U32(0x0000_0001));
+
+        assert_eq!(
+            filter.filter(&ExtractorValue::None, &mut state_manager),
+            Ok(true),
+        );
+        assert_eq!(
+            *state_manager.get_value(0).unwrap(),
+            Value::U32(0xffff_ffff),
+        );
+    }
+
+    #[test]
     fn wrong_state_type_test() {
         let mut state_manager = StateManager::new();
         state_manager.set_value(0, Value::U8(0x00));
 
-        let mut filter = StateIncrementByConstFilter::new(0, Value::U32(0x0000_0001));
+        let mut filter = DecrementStateByConstFilter::new(0, Value::U32(0x0000_0001));
 
         assert_eq!(
             filter.filter(&ExtractorValue::None, &mut state_manager),

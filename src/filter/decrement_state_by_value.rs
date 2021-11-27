@@ -4,17 +4,17 @@ use crate::{ExtractorValue, Value};
 
 #[repr(C)]
 #[derive(Debug)]
-pub struct StateDecrementByValueFilter {
+pub struct DecrementStateByValueFilter {
     state_index: u32,
 }
 
-impl StateDecrementByValueFilter {
+impl DecrementStateByValueFilter {
     pub fn new(state_index: u32) -> Self {
         Self { state_index }
     }
 }
 
-impl Filter for StateDecrementByValueFilter {
+impl Filter for DecrementStateByValueFilter {
     fn filter(
         &mut self,
         value: &ExtractorValue,
@@ -55,7 +55,7 @@ mod tests {
         let mut state_manager = StateManager::new();
         state_manager.set_value(0, Value::U32(0x0000_0005));
 
-        let mut filter = StateDecrementByValueFilter::new(0);
+        let mut filter = DecrementStateByValueFilter::new(0);
 
         assert_eq!(
             filter.filter(&ExtractorValue::U32(0x0000_0005), &mut state_manager),
@@ -72,7 +72,7 @@ mod tests {
         let mut state_manager = StateManager::new();
         state_manager.set_value(0, Value::U32(0x0000_0000));
 
-        let mut filter = StateDecrementByValueFilter::new(0);
+        let mut filter = DecrementStateByValueFilter::new(0);
 
         assert_eq!(
             filter.filter(&ExtractorValue::U32(0x0000_0001), &mut state_manager),
@@ -89,7 +89,7 @@ mod tests {
         let mut state_manager = StateManager::new();
         state_manager.set_value(0, Value::U8(0x00));
 
-        let mut filter = StateDecrementByValueFilter::new(0);
+        let mut filter = DecrementStateByValueFilter::new(0);
 
         assert_eq!(
             filter.filter(&ExtractorValue::U32(0x0000_0001), &mut state_manager),
@@ -102,7 +102,7 @@ mod tests {
         let mut state_manager = StateManager::new();
         state_manager.set_value(0, Value::U8(0x00));
 
-        let mut filter = StateDecrementByValueFilter::new(0);
+        let mut filter = DecrementStateByValueFilter::new(0);
 
         assert_eq!(
             filter.filter(&ExtractorValue::None, &mut state_manager),
