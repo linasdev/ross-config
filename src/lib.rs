@@ -3,6 +3,7 @@ extern crate alloc;
 
 use alloc::vec;
 use alloc::vec::Vec;
+use alloc::boxed::Box;
 use core::convert::TryInto;
 
 use ross_protocol::packet::Packet;
@@ -71,14 +72,14 @@ impl Serialize for Value {
 }
 
 impl TryDeserialize for Value {
-    fn try_deserialize(data: &[u8]) -> Result<Self, ConfigSerializerError> {
+    fn try_deserialize(data: &[u8]) -> Result<Box<Self>, ConfigSerializerError> {
         if data.len() < 2 {
             return Err(ConfigSerializerError::WrongSize);
         }
 
         match data[0] {
             0x00 => {
-                Ok(Value::U8(data[1]))
+                Ok(Box::new(Value::U8(data[1])))
             },
             0x01 => {
                 if data.len() < 3 {
@@ -87,7 +88,7 @@ impl TryDeserialize for Value {
 
                 let value = u16::from_be_bytes(data[1..=2].try_into().unwrap());
 
-                Ok(Value::U16(value))
+                Ok(Box::new(Value::U16(value)))
             },
             0x02 => {
                 if data.len() < 5 {
@@ -96,10 +97,10 @@ impl TryDeserialize for Value {
 
                 let value = u32::from_be_bytes(data[1..=4].try_into().unwrap());
 
-                Ok(Value::U32(value))
+                Ok(Box::new(Value::U32(value)))
             },
             0x03 => {
-                Ok(Value::Bool(data[1] != 0x00))
+                Ok(Box::new(Value::Bool(data[1] != 0x00)))
             },
             _ => {
                 Err(ConfigSerializerError::UnknownEnumVariant)
@@ -141,7 +142,7 @@ mod tests {
             0xab,
         ];
 
-        let expected_value = Value::U8(0xab);
+        let expected_value = Box::new(Value::U8(0xab));
 
         assert_eq!(Value::try_deserialize(&data), Ok(expected_value));
     }
@@ -167,7 +168,7 @@ mod tests {
             0xab,
         ];
 
-        let expected_value = Value::U16(0xabab);
+        let expected_value = Box::new(Value::U16(0xabab));
 
         assert_eq!(Value::try_deserialize(&data), Ok(expected_value));
     }
@@ -197,7 +198,7 @@ mod tests {
             0xab,
         ];
 
-        let expected_value = Value::U32(0xabab_abab);
+        let expected_value = Box::new(Value::U32(0xabab_abab));
 
         assert_eq!(Value::try_deserialize(&data), Ok(expected_value));
     }
@@ -221,7 +222,7 @@ mod tests {
             0x01,
         ];
 
-        let expected_value = Value::Bool(true);
+        let expected_value = Box::new(Value::Bool(true));
 
         assert_eq!(Value::try_deserialize(&data), Ok(expected_value));
     }

@@ -78,11 +78,8 @@ pub trait Serialize {
     fn serialize(&self) -> Vec<u8>;
 }
 
-pub trait TryDeserialize
-where
-    Self: Sized,
-{
-    fn try_deserialize(data: &[u8]) -> Result<Self, ConfigSerializerError>;
+pub trait TryDeserialize {
+    fn try_deserialize(data: &[u8]) -> Result<Box<Self>, ConfigSerializerError>;
 }
 
 #[derive(Debug, PartialEq)]
@@ -145,7 +142,7 @@ impl ConfigSerializer {
             let state_index = read_integer_from_vec!(data, offset, u32);
             let serialized_state_len = read_integer_from_vec!(data, offset, u32) as usize;
 
-            let state_value = Value::try_deserialize(&data[offset..offset + serialized_state_len])?;
+            let state_value = *Value::try_deserialize(&data[offset..offset + serialized_state_len])?;
             offset += serialized_state_len;
 
             initial_state.insert(state_index, state_value);
