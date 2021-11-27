@@ -102,7 +102,7 @@ impl ConfigSerializer {
         for state in config.initial_state.iter() {
             write_integer_to_vec!(data, *state.0, u32);
             let mut serialized_state = state.1.serialize();
-            write_integer_to_vec!(data, serialized_state.len() as u32, u32);
+            write_integer_to_vec!(data, serialized_state.len() as u8, u8);
             data.append(&mut serialized_state);
         }
 
@@ -114,7 +114,7 @@ impl ConfigSerializer {
             for matcher in event_processor.matchers.iter() {
                 write_integer_to_vec!(data, matcher.extractor.get_code(), u32);
                 let mut serialized_extractor = matcher.extractor.serialize();
-                write_integer_to_vec!(data, serialized_extractor.len() as u32, u32);
+                write_integer_to_vec!(data, serialized_extractor.len() as u8, u8);
                 data.append(&mut serialized_extractor);
                 
                 Self::write_filter_to_vec(&mut data, &matcher.filter)?;
@@ -125,12 +125,12 @@ impl ConfigSerializer {
             for creator in event_processor.creators.iter() {
                 write_integer_to_vec!(data, creator.extractor.get_code(), u32);
                 let mut extractor = creator.extractor.serialize();
-                write_integer_to_vec!(data, extractor.len() as u32, u32);
+                write_integer_to_vec!(data, extractor.len() as u8, u8);
                 data.append(&mut extractor);
 
                 write_integer_to_vec!(data, creator.producer.get_code(), u32);
                 let mut producer = creator.producer.serialize();
-                write_integer_to_vec!(data, producer.len() as u32, u32);
+                write_integer_to_vec!(data, producer.len() as u8, u8);
                 data.append(&mut producer);
             }
         }
@@ -146,7 +146,7 @@ impl ConfigSerializer {
 
         for _ in 0..initial_state_count {
             let state_index = read_integer_from_vec!(data, offset, u32);
-            let serialized_state_len = read_integer_from_vec!(data, offset, u32) as usize;
+            let serialized_state_len = read_integer_from_vec!(data, offset, u8) as usize;
 
             let state_value = *Value::try_deserialize(&data[offset..offset + serialized_state_len])?;
             offset += serialized_state_len;
@@ -167,7 +167,7 @@ impl ConfigSerializer {
 
             for _ in 0..matcher_count {
                 let extractor_code = read_integer_from_vec!(data, offset, u16);
-                let extractor_len = read_integer_from_vec!(data, offset, u32);
+                let extractor_len = read_integer_from_vec!(data, offset, u8);
                 let extractor = Self::read_extractor_from_vec(data, extractor_code)?;
                 offset += extractor_len as usize;
 
@@ -184,12 +184,12 @@ impl ConfigSerializer {
 
             for _ in 0..creator_count {
                 let extractor_code = read_integer_from_vec!(data, offset, u16);
-                let extractor_len = read_integer_from_vec!(data, offset, u32);
+                let extractor_len = read_integer_from_vec!(data, offset, u8);
                 let extractor = Self::read_extractor_from_vec(data, extractor_code)?;
                 offset += extractor_len as usize;
 
                 let producer_code = read_integer_from_vec!(data, offset, u16);
-                let producer_len = read_integer_from_vec!(data, offset, u32);
+                let producer_len = read_integer_from_vec!(data, offset, u8);
                 let producer = Self::read_producer_from_vec(data, producer_code)?;
                 offset += producer_len as usize;
 
