@@ -13,7 +13,7 @@ pub mod matcher;
 pub mod producer;
 pub mod state_manager;
 
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 pub enum Value {
     U8(u8),
     U16(u16),
