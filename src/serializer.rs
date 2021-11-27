@@ -201,94 +201,57 @@ impl ConfigSerializer {
         offset: &mut usize,
         extractor_code: u16,
     ) -> Result<Box<dyn Extractor>, ConfigSerializerError> {
-        impl_item_read!(
-            NONE_EXTRACTOR_CODE,
-            NoneExtractor,
-            data,
-            offset,
-            extractor_code
-        );
-        impl_item_read!(
-            PACKET_EXTRACTOR_CODE,
-            PacketExtractor,
-            data,
-            offset,
-            extractor_code
-        );
-        impl_item_read!(
-            EVENT_CODE_EXTRACTOR_CODE,
-            EventCodeExtractor,
-            data,
-            offset,
-            extractor_code
-        );
-        impl_item_read!(
-            EVENT_PRODUCER_ADDRESS_EXTRACTOR_CODE,
-            EventProducerAddressExtractor,
-            data,
-            offset,
-            extractor_code
-        );
-        impl_item_read!(
-            MESSAGE_CODE_EXTRACTOR_CODE,
-            MessageCodeExtractor,
-            data,
-            offset,
-            extractor_code
-        );
-        impl_item_read!(
-            MESSAGE_VALUE_EXTRACTOR_CODE,
-            MessageValueExtractor,
-            data,
-            offset,
-            extractor_code
-        );
-        impl_item_read!(
-            BUTTON_INDEX_EXTRACTOR_CODE,
-            ButtonIndexExtractor,
-            data,
-            offset,
-            extractor_code
-        );
-        Err(ConfigSerializerError::UnknownExtractor)
+        match extractor_code {
+            NONE_EXTRACTOR_CODE => NoneExtractor::try_deserialize(data),
+            PACKET_EXTRACTOR_CODE => PacketExtractor::try_deserialize(data),
+            EVENT_CODE_EXTRACTOR_CODE => EventCodeExtractor::try_deserialize(data),
+            EVENT_PRODUCER_ADDRESS_EXTRACTOR_CODE => EventProducerAddressExtractor::try_deserialize(data),
+            MESSAGE_CODE_EXTRACTOR_CODE => MessageCodeExtractor::try_deserialize(data),
+            MESSAGE_VALUE_EXTRACTOR_CODE => MessageValueExtractor::try_deserialize(data),
+            BUTTON_INDEX_EXTRACTOR_CODE => ButtonIndexExtractor::try_deserialize(data),
+            _ => Err(ConfigSerializerError::UnknownExtractor),
+        }
     }
 
     pub fn write_extractor_to_vec(
         data: &mut Vec<u8>,
         extractor: &Box<dyn Extractor>,
     ) -> Result<(), ConfigSerializerError> {
-        impl_item_write!(NONE_EXTRACTOR_CODE, NoneExtractor, data, extractor);
-        impl_item_write!(PACKET_EXTRACTOR_CODE, PacketExtractor, data, extractor);
-        impl_item_write!(
-            EVENT_CODE_EXTRACTOR_CODE,
-            EventCodeExtractor,
-            data,
-            extractor
-        );
-        impl_item_write!(
-            EVENT_PRODUCER_ADDRESS_EXTRACTOR_CODE,
-            EventProducerAddressExtractor,
-            data,
-            extractor
-        );
-        impl_item_write!(
-            MESSAGE_CODE_EXTRACTOR_CODE,
-            MessageCodeExtractor,
-            data,
-            extractor
-        );
-        impl_item_write!(
-            MESSAGE_VALUE_EXTRACTOR_CODE,
-            MessageValueExtractor,
-            data,
-            extractor
-        );
-        impl_item_write!(
-            BUTTON_INDEX_EXTRACTOR_CODE,
-            ButtonIndexExtractor,
-            data,
-            extractor
-        );
+        if let Some(extractor) = extractor.downcast_ref::<NoneExtractor>() {
+            write_integer_to_vec!(data, NONE_EXTRACTOR_CODE, u16);
+            data.append(extractor.serialize());
+            return Ok(());
+        }
+        if let Some(extractor) = extractor.downcast_ref::<PacketExtractor>() {
+            write_integer_to_vec!(data, PACKET_EXTRACTOR_CODE, u16);
+            data.append(extractor.serialize());
+            return Ok(());
+        }
+        if let Some(extractor) = extractor.downcast_ref::<EventCodeExtractor>() {
+            write_integer_to_vec!(data, EVENT_CODE_EXTRACTOR_CODE, u16);
+            data.append(extractor.serialize());
+            return Ok(());
+        }
+        if let Some(extractor) = extractor.downcast_ref::<EventProducerAddressExtractor>() {
+            write_integer_to_vec!(data, EVENT_PRODUCER_ADDRESS_EXTRACTOR_CODE, u16);
+            data.append(extractor.serialize());
+            return Ok(());
+        }
+        if let Some(extractor) = extractor.downcast_ref::<MessageCodeExtractor>() {
+            write_integer_to_vec!(data, MESSAGE_CODE_EXTRACTOR_CODE, u16);
+            data.append(extractor.serialize());
+            return Ok(());
+        }
+        if let Some(extractor) = extractor.downcast_ref::<MessageValueExtractor>() {
+            write_integer_to_vec!(data, MESSAGE_VALUE_EXTRACTOR_CODE, u16);
+            data.append(extractor.serialize());
+            return Ok(());
+        }
+        if let Some(extractor) = extractor.downcast_ref::<ButtonIndexExtractor>() {
+            write_integer_to_vec!(data, BUTTON_INDEX_EXTRACTOR_CODE, u16);
+            data.append(extractor.serialize());
+            return Ok(());
+        }
         Err(ConfigSerializerError::UnknownExtractor)
     }
 
