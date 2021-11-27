@@ -219,37 +219,37 @@ impl ConfigSerializer {
     ) -> Result<(), ConfigSerializerError> {
         if let Some(extractor) = extractor.downcast_ref::<NoneExtractor>() {
             write_integer_to_vec!(data, NONE_EXTRACTOR_CODE, u16);
-            data.append(extractor.serialize());
+            data.append(&mut extractor.serialize());
             return Ok(());
         }
         if let Some(extractor) = extractor.downcast_ref::<PacketExtractor>() {
             write_integer_to_vec!(data, PACKET_EXTRACTOR_CODE, u16);
-            data.append(extractor.serialize());
+            data.append(&mut extractor.serialize());
             return Ok(());
         }
         if let Some(extractor) = extractor.downcast_ref::<EventCodeExtractor>() {
             write_integer_to_vec!(data, EVENT_CODE_EXTRACTOR_CODE, u16);
-            data.append(extractor.serialize());
+            data.append(&mut extractor.serialize());
             return Ok(());
         }
         if let Some(extractor) = extractor.downcast_ref::<EventProducerAddressExtractor>() {
             write_integer_to_vec!(data, EVENT_PRODUCER_ADDRESS_EXTRACTOR_CODE, u16);
-            data.append(extractor.serialize());
+            data.append(&mut extractor.serialize());
             return Ok(());
         }
         if let Some(extractor) = extractor.downcast_ref::<MessageCodeExtractor>() {
             write_integer_to_vec!(data, MESSAGE_CODE_EXTRACTOR_CODE, u16);
-            data.append(extractor.serialize());
+            data.append(&mut extractor.serialize());
             return Ok(());
         }
         if let Some(extractor) = extractor.downcast_ref::<MessageValueExtractor>() {
             write_integer_to_vec!(data, MESSAGE_VALUE_EXTRACTOR_CODE, u16);
-            data.append(extractor.serialize());
+            data.append(&mut extractor.serialize());
             return Ok(());
         }
         if let Some(extractor) = extractor.downcast_ref::<ButtonIndexExtractor>() {
             write_integer_to_vec!(data, BUTTON_INDEX_EXTRACTOR_CODE, u16);
-            data.append(extractor.serialize());
+            data.append(&mut extractor.serialize());
             return Ok(());
         }
         Err(ConfigSerializerError::UnknownExtractor)
