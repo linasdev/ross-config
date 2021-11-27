@@ -10,9 +10,7 @@ pub struct FlipStateFilter {
 
 impl FlipStateFilter {
     pub fn new(state_index: u32) -> Self {
-        Self {
-            state_index,
-        }
+        Self { state_index }
     }
 }
 
@@ -48,10 +46,7 @@ mod tests {
             filter.filter(&ExtractorValue::None, &mut state_manager),
             Ok(true)
         );
-        assert_eq!(
-            *state_manager.get_value(0).unwrap(),
-            Value::Bool(false),
-        );
+        assert_eq!(*state_manager.get_value(0).unwrap(), Value::Bool(false),);
     }
 
     #[test]
@@ -65,10 +60,7 @@ mod tests {
             filter.filter(&ExtractorValue::None, &mut state_manager),
             Ok(true)
         );
-        assert_eq!(
-            *state_manager.get_value(0).unwrap(),
-            Value::Bool(true),
-        );
+        assert_eq!(*state_manager.get_value(0).unwrap(), Value::Bool(true),);
     }
 
     #[test]

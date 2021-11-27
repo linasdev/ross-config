@@ -10,9 +10,7 @@ pub struct SetStateToValueFilter {
 
 impl SetStateToValueFilter {
     pub fn new(state_index: u32) -> Self {
-        Self {
-            state_index,
-        }
+        Self { state_index }
     }
 }
 

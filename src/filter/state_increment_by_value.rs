@@ -10,9 +10,7 @@ pub struct StateIncrementByValueFilter {
 
 impl StateIncrementByValueFilter {
     pub fn new(state_index: u32) -> Self {
-        Self {
-            state_index,
-        }
+        Self { state_index }
     }
 }
 
@@ -29,10 +27,7 @@ impl Filter for StateIncrementByValueFilter {
             _ => return Err(FilterError::WrongValueType),
         };
 
-        let new_value = match (
-            state_manager.get_value(self.state_index),
-            increment_value,
-        ) {
+        let new_value = match (state_manager.get_value(self.state_index), increment_value) {
             (Some(Value::U8(current_state)), Value::U8(increment_value)) => {
                 Value::U8(current_state.wrapping_add(increment_value))
             }

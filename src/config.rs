@@ -10,9 +10,9 @@ use postcard::{from_bytes, to_allocvec};
 
 use crate::creator::Creator;
 use crate::event_processor::EventProcessor;
-use crate::matcher::Matcher;
 use crate::extractor::*;
 use crate::filter::*;
+use crate::matcher::Matcher;
 use crate::producer::*;
 use crate::Value;
 
@@ -426,12 +426,7 @@ impl ConfigSerializer {
             data,
             filter
         );
-        impl_item_write!(
-            FLIP_STATE_FILTER_CODE,
-            FlipStateFilter,
-            data,
-            filter
-        );
+        impl_item_write!(FLIP_STATE_FILTER_CODE, FlipStateFilter, data, filter);
         Err(ConfigSerializerError::UnknownFilter)
     }
 
