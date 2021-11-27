@@ -27,5 +27,6 @@ pub enum ExtractorValue<'a> {
     U8(u8),
     U16(u16),
     U32(u32),
+    Bool(bool),
     Packet(&'a Packet),
 }
