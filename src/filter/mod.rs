@@ -29,6 +29,8 @@ pub const COUNT_STATE_FILTER_CODE: u16 = 0x0007;
 pub const BOOL_IS_EQUAL_STATE_FILTER_CODE: u16 = 0x0008;
 pub const BOOL_SET_STATE_FILTER_CODE: u16 = 0x0009;
 pub const U8_IS_EQUAL_FILTER_CODE: u16 = 0x000a;
+pub const U8_SET_STATE_FILTER_CODE: u16 = 0x000b;
+pub const U8_SET_STATE_FROM_VALUE_FILTER_CODE: u16 = 0x000c;
 
 #[derive(Debug, PartialEq)]
 pub enum FilterError {
