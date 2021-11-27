@@ -15,6 +15,9 @@ pub use flip_flop_filter::*;
 mod count_filter;
 pub use count_filter::*;
 
+mod u8_filter;
+pub use u8_filter::*;
+
 pub const U8_INCREMENT_STATE_FILTER: u16 = 0x0000;
 pub const U16_IS_EQUAL_FILTER_CODE: u16 = 0x0001;
 pub const U32_IS_EQUAL_STATE_FILTER_CODE: u16 = 0x0002;
@@ -25,6 +28,7 @@ pub const COUNT_FILTER_CODE: u16 = 0x0006;
 pub const COUNT_STATE_FILTER_CODE: u16 = 0x0007;
 pub const BOOL_IS_EQUAL_STATE_FILTER_CODE: u16 = 0x0008;
 pub const BOOL_SET_STATE_FILTER_CODE: u16 = 0x0009;
+pub const U8_IS_EQUAL_FILTER_CODE: u16 = 0x000a;
 
 #[derive(Debug, PartialEq)]
 pub enum FilterError {
