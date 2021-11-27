@@ -5,6 +5,7 @@ use ross_protocol::convert_packet::ConvertPacketError;
 use ross_protocol::packet::Packet;
 
 use crate::ExtractorValue;
+use crate::serializer::Serialize;
 
 mod none;
 pub use none::*;
@@ -36,8 +37,9 @@ pub enum ExtractorError {
     ConvertValueError,
 }
 
-pub trait Extractor: Downcast + Debug {
+pub trait Extractor: Downcast + Debug + Serialize {
     fn extract<'a>(&self, packet: &'a Packet) -> Result<ExtractorValue<'a>, ExtractorError>;
+    fn get_code(&self) -> u16;
 }
 
 impl_downcast!(Extractor);

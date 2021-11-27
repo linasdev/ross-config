@@ -1,10 +1,16 @@
+extern crate alloc;
+
+use alloc::vec;
+use alloc::vec::Vec;
+use alloc::boxed::Box;
 use ross_protocol::packet::Packet;
 
-use crate::extractor::{Extractor, ExtractorError};
+use crate::extractor::{Extractor, ExtractorError, PACKET_EXTRACTOR_CODE};
 use crate::ExtractorValue;
+use crate::serializer::{Serialize, TryDeserialize, ConfigSerializerError};
 
 #[repr(C)]
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct PacketExtractor {}
 
 impl PacketExtractor {
@@ -16,6 +22,22 @@ impl PacketExtractor {
 impl Extractor for PacketExtractor {
     fn extract<'a>(&self, packet: &'a Packet) -> Result<ExtractorValue<'a>, ExtractorError> {
         Ok(ExtractorValue::Packet(packet))
+    }
+
+    fn get_code(&self) -> u16 {
+        PACKET_EXTRACTOR_CODE
+    }
+}
+
+impl Serialize for PacketExtractor {
+    fn serialize(&self) -> Vec<u8> {
+        vec![]
+    }
+}
+
+impl TryDeserialize for PacketExtractor {
+    fn try_deserialize(_data: &[u8]) -> Result<Box<Self>, ConfigSerializerError> {
+        Ok(Box::new(Self {}))
     }
 }
 
@@ -50,5 +72,23 @@ mod tests {
             extractor.extract(&packet),
             Ok(ExtractorValue::Packet(&packet))
         );
+    }
+
+    #[test]
+    fn serialize_test() {
+        let extractor = PacketExtractor::new();
+
+        let expected_data = vec![];
+
+        assert_eq!(extractor.serialize(), expected_data);
+    }
+
+    #[test]
+    fn deserialize_test() {
+        let data = vec![];
+
+        let extractor = Box::new(PacketExtractor::new());
+
+        assert_eq!(PacketExtractor::try_deserialize(&data), Ok(extractor));
     }
 }

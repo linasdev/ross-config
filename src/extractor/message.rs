@@ -1,12 +1,18 @@
+extern crate alloc;
+
+use alloc::vec;
+use alloc::vec::Vec;
+use alloc::boxed::Box;
 use ross_protocol::convert_packet::ConvertPacket;
 use ross_protocol::event::message::{MessageEvent, MessageValue};
 use ross_protocol::packet::Packet;
 
-use crate::extractor::{Extractor, ExtractorError};
+use crate::extractor::{Extractor, ExtractorError, MESSAGE_CODE_EXTRACTOR_CODE, MESSAGE_VALUE_EXTRACTOR_CODE};
 use crate::ExtractorValue;
+use crate::serializer::{Serialize, TryDeserialize, ConfigSerializerError};
 
 #[repr(C)]
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct MessageCodeExtractor {}
 
 impl MessageCodeExtractor {
@@ -22,10 +28,26 @@ impl Extractor for MessageCodeExtractor {
             Err(err) => Err(ExtractorError::ConvertPacketError(err)),
         }
     }
+
+    fn get_code(&self) -> u16 {
+        MESSAGE_CODE_EXTRACTOR_CODE
+    }
+}
+
+impl Serialize for MessageCodeExtractor {
+    fn serialize(&self) -> Vec<u8> {
+        vec![]
+    }
+}
+
+impl TryDeserialize for MessageCodeExtractor {
+    fn try_deserialize(_data: &[u8]) -> Result<Box<Self>, ConfigSerializerError> {
+        Ok(Box::new(Self {}))
+    }
 }
 
 #[repr(C)]
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct MessageValueExtractor {}
 
 impl MessageValueExtractor {
@@ -49,6 +71,22 @@ impl Extractor for MessageValueExtractor {
             }
             Err(err) => Err(ExtractorError::ConvertPacketError(err)),
         }
+    }
+
+    fn get_code(&self) -> u16 {
+        MESSAGE_VALUE_EXTRACTOR_CODE
+    }
+}
+
+impl Serialize for MessageValueExtractor {
+    fn serialize(&self) -> Vec<u8> {
+        vec![]
+    }
+}
+
+impl TryDeserialize for MessageValueExtractor {
+    fn try_deserialize(_data: &[u8]) -> Result<Box<Self>, ConfigSerializerError> {
+        Ok(Box::new(Self {}))
     }
 }
 
@@ -119,6 +157,24 @@ mod tests {
             extractor.extract(&packet),
             Err(ExtractorError::ConvertPacketError(_))
         ));
+    }
+
+    #[test]
+    fn message_code_serialize_test() {
+        let extractor = MessageCodeExtractor::new();
+
+        let expected_data = vec![];
+
+        assert_eq!(extractor.serialize(), expected_data);
+    }
+
+    #[test]
+    fn message_code_deserialize_test() {
+        let data = vec![];
+
+        let extractor = Box::new(MessageCodeExtractor::new());
+
+        assert_eq!(MessageCodeExtractor::try_deserialize(&data), Ok(extractor));
     }
 
     #[test]
@@ -203,5 +259,23 @@ mod tests {
             extractor.extract(&packet),
             Err(ExtractorError::ConvertPacketError(_))
         ));
+    }
+
+    #[test]
+    fn message_value_serialize_test() {
+        let extractor = MessageValueExtractor::new();
+
+        let expected_data = vec![];
+
+        assert_eq!(extractor.serialize(), expected_data);
+    }
+
+    #[test]
+    fn message_value_deserialize_test() {
+        let data = vec![];
+
+        let extractor = Box::new(MessageValueExtractor::new());
+
+        assert_eq!(MessageValueExtractor::try_deserialize(&data), Ok(extractor));
     }
 }

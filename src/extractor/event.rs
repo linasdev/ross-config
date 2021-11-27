@@ -1,12 +1,18 @@
+extern crate alloc;
+
+use alloc::vec;
+use alloc::vec::Vec;
+use alloc::boxed::Box;
 use core::convert::TryInto;
 
 use ross_protocol::packet::Packet;
 
-use crate::extractor::{Extractor, ExtractorError};
+use crate::extractor::{Extractor, ExtractorError, EVENT_CODE_EXTRACTOR_CODE, EVENT_PRODUCER_ADDRESS_EXTRACTOR_CODE};
 use crate::ExtractorValue;
+use crate::serializer::{Serialize, TryDeserialize, ConfigSerializerError};
 
 #[repr(C)]
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct EventCodeExtractor {}
 
 impl EventCodeExtractor {
@@ -25,10 +31,26 @@ impl Extractor for EventCodeExtractor {
             )))
         }
     }
+
+    fn get_code(&self) -> u16 {
+        EVENT_CODE_EXTRACTOR_CODE
+    }
+}
+
+impl Serialize for EventCodeExtractor {
+    fn serialize(&self) -> Vec<u8> {
+        vec![]
+    }
+}
+
+impl TryDeserialize for EventCodeExtractor {
+    fn try_deserialize(_data: &[u8]) -> Result<Box<Self>, ConfigSerializerError> {
+        Ok(Box::new(Self {}))
+    }
 }
 
 #[repr(C)]
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct EventProducerAddressExtractor {}
 
 impl EventProducerAddressExtractor {
@@ -46,6 +68,22 @@ impl Extractor for EventProducerAddressExtractor {
                 packet.data[2..=3].try_into().unwrap(),
             )))
         }
+    }
+
+    fn get_code(&self) -> u16 {
+        EVENT_PRODUCER_ADDRESS_EXTRACTOR_CODE
+    }
+}
+
+impl Serialize for EventProducerAddressExtractor {
+    fn serialize(&self) -> Vec<u8> {
+        vec![]
+    }
+}
+
+impl TryDeserialize for EventProducerAddressExtractor {
+    fn try_deserialize(_data: &[u8]) -> Result<Box<Self>, ConfigSerializerError> {
+        Ok(Box::new(Self {}))
     }
 }
 
@@ -93,6 +131,24 @@ mod tests {
     }
 
     #[test]
+    fn event_code_serialize_test() {
+        let extractor = EventCodeExtractor::new();
+
+        let expected_data = vec![];
+
+        assert_eq!(extractor.serialize(), expected_data);
+    }
+
+    #[test]
+    fn event_code_deserialize_test() {
+        let data = vec![];
+
+        let extractor = Box::new(EventCodeExtractor::new());
+
+        assert_eq!(EventCodeExtractor::try_deserialize(&data), Ok(extractor));
+    }
+
+    #[test]
     fn event_producer_address_test() {
         let mut packet = PACKET;
         packet.data = vec![
@@ -123,5 +179,23 @@ mod tests {
             extractor.extract(&packet),
             Err(ExtractorError::PacketTooShort)
         );
+    }
+
+    #[test]
+    fn event_producer_address_serialize_test() {
+        let extractor = EventProducerAddressExtractor::new();
+
+        let expected_data = vec![];
+
+        assert_eq!(extractor.serialize(), expected_data);
+    }
+
+    #[test]
+    fn event_producer_address_deserialize_test() {
+        let data = vec![];
+
+        let extractor = Box::new(EventProducerAddressExtractor::new());
+
+        assert_eq!(EventProducerAddressExtractor::try_deserialize(&data), Ok(extractor));
     }
 }

@@ -101,14 +101,9 @@ impl ConfigSerializer {
 
         for state in config.initial_state.iter() {
             write_integer_to_vec!(data, *state.0, u32);
-
-            let serialized_state = state.1.serialize();
-
+            let mut serialized_state = state.1.serialize();
             write_integer_to_vec!(data, serialized_state.len() as u32, u32);
-
-            for byte in serialized_state.iter() {
-                data.push(*byte);
-            }
+            data.append(&mut serialized_state);
         }
 
         write_integer_to_vec!(data, config.event_processors.len(), u32);
@@ -117,14 +112,22 @@ impl ConfigSerializer {
             write_integer_to_vec!(data, event_processor.matchers.len(), u32);
 
             for matcher in event_processor.matchers.iter() {
-                Self::write_extractor_to_vec(&mut data, &matcher.extractor)?;
+                write_integer_to_vec!(data, matcher.extractor.get_code(), u32);
+                let mut serialized_extractor = matcher.extractor.serialize();
+                write_integer_to_vec!(data, serialized_extractor.len() as u32, u32);
+                data.append(&mut serialized_extractor);
+                
                 Self::write_filter_to_vec(&mut data, &matcher.filter)?;
             }
 
             write_integer_to_vec!(data, event_processor.creators.len(), u32);
 
             for creator in event_processor.creators.iter() {
-                Self::write_extractor_to_vec(&mut data, &creator.extractor)?;
+                write_integer_to_vec!(data, creator.extractor.get_code(), u32);
+                let mut serialized_extractor = creator.extractor.serialize();
+                write_integer_to_vec!(data, serialized_extractor.len() as u32, u32);
+                data.append(&mut serialized_extractor);
+
                 Self::write_producer_to_vec(&mut data, &creator.producer)?;
             }
         }
@@ -161,7 +164,9 @@ impl ConfigSerializer {
 
             for _ in 0..matcher_count {
                 let extractor_code = read_integer_from_vec!(data, offset, u16);
-                let extractor = Self::read_extractor_from_vec(data, &mut offset, extractor_code)?;
+                let extractor_len = read_integer_from_vec!(data, offset, u32);
+                let extractor = Self::read_extractor_from_vec(data, extractor_code)?;
+                offset += extractor_len as usize;
 
                 let filter_code = read_integer_from_vec!(data, offset, u16);
                 let filter = Self::read_filter_from_vec(data, &mut offset, filter_code)?;
@@ -176,7 +181,9 @@ impl ConfigSerializer {
 
             for _ in 0..creator_count {
                 let extractor_code = read_integer_from_vec!(data, offset, u16);
-                let extractor = Self::read_extractor_from_vec(data, &mut offset, extractor_code)?;
+                let extractor_len = read_integer_from_vec!(data, offset, u32);
+                let extractor = Self::read_extractor_from_vec(data, extractor_code)?;
+                offset += extractor_len as usize;
 
                 let producer_code = read_integer_from_vec!(data, offset, u16);
                 let producer = Self::read_producer_from_vec(data, &mut offset, producer_code)?;
@@ -198,61 +205,18 @@ impl ConfigSerializer {
 
     fn read_extractor_from_vec(
         data: &Vec<u8>,
-        offset: &mut usize,
         extractor_code: u16,
     ) -> Result<Box<dyn Extractor>, ConfigSerializerError> {
         match extractor_code {
-            NONE_EXTRACTOR_CODE => NoneExtractor::try_deserialize(data),
-            PACKET_EXTRACTOR_CODE => PacketExtractor::try_deserialize(data),
-            EVENT_CODE_EXTRACTOR_CODE => EventCodeExtractor::try_deserialize(data),
-            EVENT_PRODUCER_ADDRESS_EXTRACTOR_CODE => EventProducerAddressExtractor::try_deserialize(data),
-            MESSAGE_CODE_EXTRACTOR_CODE => MessageCodeExtractor::try_deserialize(data),
-            MESSAGE_VALUE_EXTRACTOR_CODE => MessageValueExtractor::try_deserialize(data),
-            BUTTON_INDEX_EXTRACTOR_CODE => ButtonIndexExtractor::try_deserialize(data),
+            NONE_EXTRACTOR_CODE => Ok(NoneExtractor::try_deserialize(data)?),
+            PACKET_EXTRACTOR_CODE => Ok(PacketExtractor::try_deserialize(data)?),
+            EVENT_CODE_EXTRACTOR_CODE => Ok(EventCodeExtractor::try_deserialize(data)?),
+            EVENT_PRODUCER_ADDRESS_EXTRACTOR_CODE => Ok(EventProducerAddressExtractor::try_deserialize(data)?),
+            MESSAGE_CODE_EXTRACTOR_CODE => Ok(MessageCodeExtractor::try_deserialize(data)?),
+            MESSAGE_VALUE_EXTRACTOR_CODE => Ok(MessageValueExtractor::try_deserialize(data)?),
+            BUTTON_INDEX_EXTRACTOR_CODE => Ok(ButtonIndexExtractor::try_deserialize(data)?),
             _ => Err(ConfigSerializerError::UnknownExtractor),
         }
-    }
-
-    pub fn write_extractor_to_vec(
-        data: &mut Vec<u8>,
-        extractor: &Box<dyn Extractor>,
-    ) -> Result<(), ConfigSerializerError> {
-        if let Some(extractor) = extractor.downcast_ref::<NoneExtractor>() {
-            write_integer_to_vec!(data, NONE_EXTRACTOR_CODE, u16);
-            data.append(&mut extractor.serialize());
-            return Ok(());
-        }
-        if let Some(extractor) = extractor.downcast_ref::<PacketExtractor>() {
-            write_integer_to_vec!(data, PACKET_EXTRACTOR_CODE, u16);
-            data.append(&mut extractor.serialize());
-            return Ok(());
-        }
-        if let Some(extractor) = extractor.downcast_ref::<EventCodeExtractor>() {
-            write_integer_to_vec!(data, EVENT_CODE_EXTRACTOR_CODE, u16);
-            data.append(&mut extractor.serialize());
-            return Ok(());
-        }
-        if let Some(extractor) = extractor.downcast_ref::<EventProducerAddressExtractor>() {
-            write_integer_to_vec!(data, EVENT_PRODUCER_ADDRESS_EXTRACTOR_CODE, u16);
-            data.append(&mut extractor.serialize());
-            return Ok(());
-        }
-        if let Some(extractor) = extractor.downcast_ref::<MessageCodeExtractor>() {
-            write_integer_to_vec!(data, MESSAGE_CODE_EXTRACTOR_CODE, u16);
-            data.append(&mut extractor.serialize());
-            return Ok(());
-        }
-        if let Some(extractor) = extractor.downcast_ref::<MessageValueExtractor>() {
-            write_integer_to_vec!(data, MESSAGE_VALUE_EXTRACTOR_CODE, u16);
-            data.append(&mut extractor.serialize());
-            return Ok(());
-        }
-        if let Some(extractor) = extractor.downcast_ref::<ButtonIndexExtractor>() {
-            write_integer_to_vec!(data, BUTTON_INDEX_EXTRACTOR_CODE, u16);
-            data.append(&mut extractor.serialize());
-            return Ok(());
-        }
-        Err(ConfigSerializerError::UnknownExtractor)
     }
 
     fn read_filter_from_vec(
