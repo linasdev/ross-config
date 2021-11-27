@@ -10,13 +10,11 @@ use postcard::{from_bytes, to_allocvec};
 
 use crate::creator::Creator;
 use crate::event_processor::EventProcessor;
-use crate::extractor::*;
-use crate::filter::state::*;
-use crate::filter::*;
 use crate::matcher::Matcher;
-use crate::producer::state::*;
+use crate::extractor::*;
+use crate::filter::*;
 use crate::producer::*;
-use crate::StateValue;
+use crate::Value;
 
 macro_rules! impl_item_read {
     ($item_code:expr, $item_type:ty, $data:expr, $offset:expr, $provided_code:expr) => {
@@ -78,7 +76,7 @@ macro_rules! write_integer_to_vec {
 
 #[derive(Debug)]
 pub struct Config {
-    pub initial_state: BTreeMap<u32, StateValue>,
+    pub initial_state: BTreeMap<u32, Value>,
     pub event_processors: Vec<EventProcessor>,
 }
 
@@ -209,15 +207,15 @@ impl ConfigSerializer {
             extractor_code
         );
         impl_item_read!(
-            EVENT_CODE_EXTRACTOR_CODE,
-            EventCodeExtractor,
+            PACKET_EXTRACTOR_CODE,
+            PacketExtractor,
             data,
             offset,
             extractor_code
         );
         impl_item_read!(
-            PACKET_EXTRACTOR_CODE,
-            PacketExtractor,
+            EVENT_CODE_EXTRACTOR_CODE,
+            EventCodeExtractor,
             data,
             offset,
             extractor_code
@@ -258,13 +256,13 @@ impl ConfigSerializer {
         extractor: &Box<dyn Extractor>,
     ) -> Result<(), ConfigSerializerError> {
         impl_item_write!(NONE_EXTRACTOR_CODE, NoneExtractor, data, extractor);
+        impl_item_write!(PACKET_EXTRACTOR_CODE, PacketExtractor, data, extractor);
         impl_item_write!(
             EVENT_CODE_EXTRACTOR_CODE,
             EventCodeExtractor,
             data,
             extractor
         );
-        impl_item_write!(PACKET_EXTRACTOR_CODE, PacketExtractor, data, extractor);
         impl_item_write!(
             EVENT_PRODUCER_ADDRESS_EXTRACTOR_CODE,
             EventProducerAddressExtractor,
@@ -298,86 +296,71 @@ impl ConfigSerializer {
         filter_code: u16,
     ) -> Result<Box<dyn Filter>, ConfigSerializerError> {
         impl_item_read!(
-            U8_INCREMENT_STATE_FILTER,
-            U8IncrementStateFilter,
+            VALUE_EQUAL_TO_CONST_FILTER_CODE,
+            ValueEqualToConstFilter,
             data,
             offset,
             filter_code
         );
         impl_item_read!(
-            U16_IS_EQUAL_FILTER_CODE,
-            U16IsEqualFilter,
+            STATE_EQUAL_TO_CONST_FILTER_CODE,
+            StateEqualToConstFilter,
             data,
             offset,
             filter_code
         );
         impl_item_read!(
-            U32_IS_EQUAL_STATE_FILTER_CODE,
-            U32IsEqualStateFilter,
+            STATE_EQUAL_TO_VALUE_FILTER_CODE,
+            StateEqualToValueFilter,
             data,
             offset,
             filter_code
         );
         impl_item_read!(
-            U32_INCREMENT_STATE_FILTER_CODE,
-            U32IncrementStateFilter,
+            STATE_INCREMENT_BY_CONST_FILTER_CODE,
+            StateIncrementByConstFilter,
             data,
             offset,
             filter_code
         );
         impl_item_read!(
-            U32_SET_STATE_FILTER_CODE,
-            U32SetStateFilter,
+            STATE_INCREMENT_BY_VALUE_FILTER_CODE,
+            StateIncrementByValueFilter,
             data,
             offset,
             filter_code
         );
         impl_item_read!(
-            FLIP_FLOP_FILTER_CODE,
-            FlipFlopFilter,
-            data,
-            offset,
-            filter_code
-        );
-        impl_item_read!(COUNT_FILTER_CODE, CountFilter, data, offset, filter_code);
-        impl_item_read!(
-            BOOL_IS_EQUAL_STATE_FILTER_CODE,
-            BoolIsEqualStateFilter,
+            STATE_DECREMENT_BY_CONST_FILTER_CODE,
+            StateDecrementByConstFilter,
             data,
             offset,
             filter_code
         );
         impl_item_read!(
-            BOOL_SET_STATE_FILTER_CODE,
-            BoolSetStateFilter,
+            STATE_DECREMENT_BY_VALUE_FILTER_CODE,
+            StateDecrementByValueFilter,
             data,
             offset,
             filter_code
         );
         impl_item_read!(
-            U8_IS_EQUAL_FILTER_CODE,
-            U8IsEqualFilter,
+            SET_STATE_TO_CONST_FILTER_CODE,
+            SetStateToConstFilter,
             data,
             offset,
             filter_code
         );
         impl_item_read!(
-            U8_SET_STATE_FILTER_CODE,
-            U8SetStateFilter,
+            SET_STATE_TO_VALUE_FILTER_CODE,
+            SetStateToValueFilter,
             data,
             offset,
             filter_code
         );
         impl_item_read!(
-            U8_SET_STATE_FROM_VALUE_FILTER_CODE,
-            U8SetFromValueStateFilter,
-            data,
-            offset,
-            filter_code
-        );
-        impl_item_read!(
-            BOOL_FLIP_STATE_FILTER_CODE,
-            BoolFlipStateFilter,
+            FLIP_STATE_FILTER_CODE,
+            FlipStateFilter,
             data,
             offset,
             filter_code
@@ -390,38 +373,65 @@ impl ConfigSerializer {
         filter: &Box<dyn Filter>,
     ) -> Result<(), ConfigSerializerError> {
         impl_item_write!(
-            U8_INCREMENT_STATE_FILTER,
-            U8IncrementStateFilter,
-            data,
-            filter
-        );
-        impl_item_write!(U16_IS_EQUAL_FILTER_CODE, U16IsEqualFilter, data, filter);
-        impl_item_write!(
-            U32_IS_EQUAL_STATE_FILTER_CODE,
-            U32IsEqualStateFilter,
+            VALUE_EQUAL_TO_CONST_FILTER_CODE,
+            ValueEqualToConstFilter,
             data,
             filter
         );
         impl_item_write!(
-            U32_INCREMENT_STATE_FILTER_CODE,
-            U32IncrementStateFilter,
+            STATE_EQUAL_TO_CONST_FILTER_CODE,
+            StateEqualToConstFilter,
             data,
             filter
         );
-        impl_item_write!(U32_SET_STATE_FILTER_CODE, U32SetStateFilter, data, filter);
-        impl_item_write!(FLIP_FLOP_FILTER_CODE, FlipFlopFilter, data, filter);
-        impl_item_write!(COUNT_FILTER_CODE, CountFilter, data, filter);
         impl_item_write!(
-            BOOL_IS_EQUAL_STATE_FILTER_CODE,
-            BoolIsEqualStateFilter,
+            STATE_EQUAL_TO_VALUE_FILTER_CODE,
+            StateEqualToValueFilter,
             data,
             filter
         );
-        impl_item_write!(BOOL_SET_STATE_FILTER_CODE, BoolSetStateFilter, data, filter);
-        impl_item_write!(U8_IS_EQUAL_FILTER_CODE, U8IsEqualFilter, data, filter);
-        impl_item_write!(U8_SET_STATE_FILTER_CODE, U8SetStateFilter, data, filter);
-        impl_item_write!(U8_SET_STATE_FROM_VALUE_FILTER_CODE, U8SetFromValueStateFilter, data, filter);
-        impl_item_write!(BOOL_FLIP_STATE_FILTER_CODE, BoolFlipStateFilter, data, filter);
+        impl_item_write!(
+            STATE_INCREMENT_BY_CONST_FILTER_CODE,
+            StateIncrementByConstFilter,
+            data,
+            filter
+        );
+        impl_item_write!(
+            STATE_INCREMENT_BY_VALUE_FILTER_CODE,
+            StateIncrementByValueFilter,
+            data,
+            filter
+        );
+        impl_item_write!(
+            STATE_DECREMENT_BY_CONST_FILTER_CODE,
+            StateDecrementByConstFilter,
+            data,
+            filter
+        );
+        impl_item_write!(
+            STATE_DECREMENT_BY_VALUE_FILTER_CODE,
+            StateDecrementByValueFilter,
+            data,
+            filter
+        );
+        impl_item_write!(
+            SET_STATE_TO_CONST_FILTER_CODE,
+            SetStateToConstFilter,
+            data,
+            filter
+        );
+        impl_item_write!(
+            SET_STATE_TO_VALUE_FILTER_CODE,
+            SetStateToValueFilter,
+            data,
+            filter
+        );
+        impl_item_write!(
+            FLIP_STATE_FILTER_CODE,
+            FlipStateFilter,
+            data,
+            filter
+        );
         Err(ConfigSerializerError::UnknownFilter)
     }
 
@@ -433,20 +443,6 @@ impl ConfigSerializer {
         impl_item_read!(
             NONE_PRODUCER_CODE,
             NoneProducer,
-            data,
-            offset,
-            producer_code
-        );
-        impl_item_read!(
-            BCM_CHANGE_BRIGHTNESS_PRODUCER_CODE,
-            BcmChangeBrightnessProducer,
-            data,
-            offset,
-            producer_code
-        );
-        impl_item_read!(
-            BCM_CHANGE_BRIGHTNESS_STATE_PRODUCER_CODE,
-            BcmChangeBrightnessStateProducer,
             data,
             offset,
             producer_code
@@ -465,6 +461,20 @@ impl ConfigSerializer {
             offset,
             producer_code
         );
+        impl_item_read!(
+            BCM_CHANGE_BRIGHTNESS_PRODUCER_CODE,
+            BcmChangeBrightnessProducer,
+            data,
+            offset,
+            producer_code
+        );
+        impl_item_read!(
+            BCM_CHANGE_BRIGHTNESS_STATE_PRODUCER_CODE,
+            BcmChangeBrightnessStateProducer,
+            data,
+            offset,
+            producer_code
+        );
         Err(ConfigSerializerError::UnknownProducer)
     }
 
@@ -473,6 +483,8 @@ impl ConfigSerializer {
         producer: &Box<dyn Producer>,
     ) -> Result<(), ConfigSerializerError> {
         impl_item_write!(NONE_PRODUCER_CODE, NoneProducer, data, producer);
+        impl_item_write!(PACKET_PRODUCER_CODE, PacketProducer, data, producer);
+        impl_item_write!(MESSAGE_PRODUCER_CODE, MessageProducer, data, producer);
         impl_item_write!(
             BCM_CHANGE_BRIGHTNESS_PRODUCER_CODE,
             BcmChangeBrightnessProducer,
@@ -485,8 +497,6 @@ impl ConfigSerializer {
             data,
             producer
         );
-        impl_item_write!(PACKET_PRODUCER_CODE, PacketProducer, data, producer);
-        impl_item_write!(MESSAGE_PRODUCER_CODE, MessageProducer, data, producer);
         Err(ConfigSerializerError::UnknownProducer)
     }
 }
@@ -504,13 +514,13 @@ mod tests {
     #[test]
     fn serialize_test() {
         let mut initial_state = BTreeMap::new();
-        initial_state.insert(0, StateValue::U8(0xff));
+        initial_state.insert(0, Value::U8(0xff));
 
         let mut event_processors = vec![];
         event_processors.push(EventProcessor {
             matchers: vec![Matcher {
                 extractor: Box::new(EventCodeExtractor::new()),
-                filter: Box::new(U16IsEqualFilter::new(0xff)),
+                filter: Box::new(ValueEqualToConstFilter::new(Value::U8(0xff))),
             }],
             creators: vec![Creator {
                 extractor: Box::new(NoneExtractor::new()),
@@ -532,12 +542,12 @@ mod tests {
             0x00, 0xff, // state_value
             0x00, 0x00, 0x00, 0x01, // event processor count
             0x00, 0x00, 0x00, 0x01, // matcher count
-            0x00, 0x01, // EVENT_CODE_EXTRACTOR_CODE
-            0x00, 0x01, // U16_IS_EQUAL_FILTER_CODE
-            0xff, 0x00, // value
+            0x00, 0x02, // EVENT_CODE_EXTRACTOR_CODE
+            0x00, 0x00, // VALUE_EQUAL_TO_CONST_FILTER_CODE
+            0x00, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // value
             0x00, 0x00, 0x00, 0x01, // creator count
             0x00, 0x00, // NONE_EXTRACTOR_CODE
-            0x00, 0x02, // BCM_CHANGE_BRIGHTNESS_STATE_PRODUCER_CODE
+            0x00, 0x04, // BCM_CHANGE_BRIGHTNESS_STATE_PRODUCER_CODE
             0xff, 0x00, // bcm_address
             0xff, 0x00, // channel
             0x00, 0x00, 0x00, 0x00, // state_index
@@ -577,12 +587,12 @@ mod tests {
             0x00, 0xff, // state_value
             0x00, 0x00, 0x00, 0x01, // event processor count
             0x00, 0x00, 0x00, 0x01, // matcher count
-            0x00, 0x01, // EVENT_CODE_EXTRACTOR_CODE
-            0x00, 0x01, // U16_IS_EQUAL_FILTER_CODE
-            0xff, 0x00, // value
+            0x00, 0x02, // EVENT_CODE_EXTRACTOR_CODE
+            0x00, 0x00, // VALUE_EQUAL_TO_CONST_FILTER_CODE
+            0x00, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // value
             0x00, 0x00, 0x00, 0x01, // creator count
             0x00, 0x00, // NONE_EXTRACTOR_CODE
-            0x00, 0x02, // BCM_CHANGE_BRIGHTNESS_STATE_PRODUCER_CODE
+            0x00, 0x04, // BCM_CHANGE_BRIGHTNESS_STATE_PRODUCER_CODE
             0xff, 0x00, // bcm_address
             0xff, 0x00, // channel
             0x00, 0x00, 0x00, 0x00, // state_index
@@ -591,7 +601,7 @@ mod tests {
         let config = ConfigSerializer::deserialize(&data).unwrap();
 
         assert_eq!(config.initial_state.len(), 1);
-        assert_eq!(*config.initial_state.get(&0).unwrap(), StateValue::U8(0xff));
+        assert_eq!(*config.initial_state.get(&0).unwrap(), Value::U8(0xff));
         assert_eq!(config.event_processors.len(), 1);
     }
 }
