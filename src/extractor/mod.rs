@@ -24,12 +24,16 @@ pub use message_code_extractor::*;
 mod message_value_extractor;
 pub use message_value_extractor::*;
 
+mod button_index_extractor;
+pub use button_index_extractor::*;
+
 pub const NONE_EXTRACTOR_CODE: u16 = 0x0000;
 pub const EVENT_CODE_EXTRACTOR_CODE: u16 = 0x0001;
 pub const PACKET_EXTRACTOR_CODE: u16 = 0x0002;
 pub const EVENT_PRODUCER_ADDRESS_EXTRACTOR_CODE: u16 = 0x0003;
 pub const MESSAGE_CODE_EXTRACTOR_CODE: u16 = 0x0004;
 pub const MESSAGE_VALUE_EXTRACTOR_CODE: u16 = 0x0004;
+pub const BUTTON_INDEX_EXTRACTOR_CODE: u16 = 0x0005;
 
 #[derive(Debug, PartialEq)]
 pub enum ExtractorError {

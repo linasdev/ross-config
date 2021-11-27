@@ -243,6 +243,13 @@ impl ConfigSerializer {
             offset,
             extractor_code
         );
+        impl_item_read!(
+            BUTTON_INDEX_EXTRACTOR_CODE,
+            ButtonIndexExtractor,
+            data,
+            offset,
+            extractor_code
+        );
         Err(ConfigSerializerError::UnknownExtractor)
     }
 
@@ -273,6 +280,12 @@ impl ConfigSerializer {
         impl_item_write!(
             MESSAGE_VALUE_EXTRACTOR_CODE,
             MessageValueExtractor,
+            data,
+            extractor
+        );
+        impl_item_write!(
+            BUTTON_INDEX_EXTRACTOR_CODE,
+            ButtonIndexExtractor,
             data,
             extractor
         );
