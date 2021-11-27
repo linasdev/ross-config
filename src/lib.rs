@@ -3,7 +3,6 @@ extern crate alloc;
 
 use alloc::vec;
 use alloc::vec::Vec;
-use core::mem::{transmute, transmute_copy, size_of};
 use core::convert::TryInto;
 
 use ross_protocol::packet::Packet;
