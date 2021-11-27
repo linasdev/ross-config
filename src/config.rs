@@ -421,6 +421,13 @@ impl ConfigSerializer {
             offset,
             producer_code
         );
+        impl_item_read!(
+            MESSAGE_PRODUCER_CODE,
+            MessageProducer,
+            data,
+            offset,
+            producer_code
+        );
         Err(ConfigSerializerError::UnknownProducer)
     }
 
@@ -442,6 +449,7 @@ impl ConfigSerializer {
             producer
         );
         impl_item_write!(PACKET_PRODUCER_CODE, PacketProducer, data, producer);
+        impl_item_write!(MESSAGE_PRODUCER_CODE, MessageProducer, data, producer);
         Err(ConfigSerializerError::UnknownProducer)
     }
 }
