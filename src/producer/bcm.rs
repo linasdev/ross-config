@@ -8,6 +8,42 @@ use crate::{ExtractorValue, Value};
 
 #[repr(C)]
 #[derive(Debug)]
+pub struct BcmChangeBrightnessProducer {
+    bcm_address: u16,
+    channel: u8,
+    brightness: u8,
+}
+
+impl BcmChangeBrightnessProducer {
+    pub fn new(bcm_address: u16, channel: u8, brightness: u8) -> Self {
+        Self {
+            bcm_address,
+            channel,
+            brightness,
+        }
+    }
+}
+
+impl Producer for BcmChangeBrightnessProducer {
+    fn produce(
+        &self,
+        _value: ExtractorValue,
+        _state_manager: &StateManager,
+        device_address: u16,
+    ) -> Result<Option<Packet>, ProducerError> {
+        let event = BcmChangeBrightnessEvent {
+            bcm_address: self.bcm_address,
+            transmitter_address: device_address,
+            channel: self.channel,
+            brightness: self.brightness,
+        };
+
+        Ok(Some(event.to_packet()))
+    }
+}
+
+#[repr(C)]
+#[derive(Debug)]
 pub struct BcmChangeBrightnessStateProducer {
     bcm_address: u16,
     channel: u8,
@@ -65,7 +101,29 @@ mod tests {
     };
 
     #[test]
-    fn bcm_change_brightness_state_producer_test() {
+    fn change_brightness_test() {
+        let mut packet = PACKET;
+        packet.data = vec![
+            ((BCM_CHANGE_BRIGHTNESS_EVENT_CODE >> 8) & 0xff) as u8, // event code
+            ((BCM_CHANGE_BRIGHTNESS_EVENT_CODE >> 0) & 0xff) as u8, // event code
+            0x00,                                                   // transmitter address
+            0x00,                                                   // transmitter address
+            0x01,                                                   // channel
+            0x02,                                                   // brightness
+        ];
+
+        let state_manager = StateManager::new();
+
+        let producer = BcmChangeBrightnessProducer::new(PACKET.device_address, 0x01, 0x02);
+
+        assert_eq!(
+            producer.produce(ExtractorValue::None, &state_manager, 0x0000),
+            Ok(Some(packet))
+        );
+    }
+
+    #[test]
+    fn change_brightness_state_test() {
         let mut packet = PACKET;
         packet.data = vec![
             ((BCM_CHANGE_BRIGHTNESS_EVENT_CODE >> 8) & 0xff) as u8, // event code

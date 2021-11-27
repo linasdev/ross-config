@@ -6,19 +6,17 @@ use ross_protocol::packet::Packet;
 use crate::state_manager::StateManager;
 use crate::ExtractorValue;
 
-pub mod state;
+mod none;
+pub use none::*;
 
-mod bcm_change_brightness_producer;
-pub use bcm_change_brightness_producer::*;
+mod packet;
+pub use packet::*;
 
-mod none_producer;
-pub use none_producer::*;
+mod bcm;
+pub use bcm::*;
 
-mod packet_producer;
-pub use packet_producer::*;
-
-mod message_producer;
-pub use message_producer::*;
+mod message;
+pub use message::*;
 
 pub const NONE_PRODUCER_CODE: u16 = 0x0000;
 pub const BCM_CHANGE_BRIGHTNESS_PRODUCER_CODE: u16 = 0x0001;
