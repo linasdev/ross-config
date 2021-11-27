@@ -3,6 +3,7 @@ use downcast_rs::{impl_downcast, Downcast};
 
 use crate::state_manager::StateManager;
 use crate::ExtractorValue;
+use crate::serializer::Serialize;
 
 mod value_equal_to_const;
 pub use value_equal_to_const::*;
@@ -51,12 +52,13 @@ pub enum FilterError {
     WrongStateType,
 }
 
-pub trait Filter: Downcast + Debug {
+pub trait Filter: Downcast + Debug + Serialize {
     fn filter(
         &mut self,
         value: &ExtractorValue,
         state_manager: &mut StateManager,
     ) -> Result<bool, FilterError>;
+    fn get_code(&self) -> u16;
 }
 
 impl_downcast!(Filter);

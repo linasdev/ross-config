@@ -5,7 +5,7 @@ use alloc::collections::BTreeMap;
 use alloc::vec;
 use alloc::vec::Vec;
 use core::convert::TryInto;
-use core::mem::{size_of, transmute_copy};
+use core::mem::size_of;
 
 use crate::config::Config;
 use crate::creator::Creator;
@@ -15,39 +15,6 @@ use crate::filter::*;
 use crate::matcher::Matcher;
 use crate::producer::*;
 use crate::Value;
-
-macro_rules! impl_item_read {
-    ($item_code:expr, $item_type:ty, $data:expr, $offset:expr, $provided_code:expr) => {
-        if $item_code == $provided_code {
-            unsafe {
-                const SIZE: usize = size_of::<$item_type>();
-                let item = Box::new(transmute_copy::<[u8; SIZE], $item_type>(
-                    $data[*$offset..*$offset + SIZE].try_into().unwrap(),
-                ));
-                *$offset += SIZE;
-
-                return Ok(item);
-            }
-        }
-    };
-}
-
-macro_rules! impl_item_write {
-    ($item_code:expr, $item_type:ty, $data:expr, $item:expr) => {
-        if let Some(item) = $item.downcast_ref::<$item_type>() {
-            write_integer_to_vec!($data, $item_code, u16);
-
-            unsafe {
-                for byte in transmute_copy::<$item_type, [u8; size_of::<$item_type>()]>(item).iter()
-                {
-                    $data.push(*byte);
-                }
-            }
-
-            return Ok(());
-        }
-    };
-}
 
 macro_rules! read_integer_from_vec {
     ($data:expr, $offset:expr, $integer_type:ty) => {{
@@ -112,23 +79,26 @@ impl ConfigSerializer {
             write_integer_to_vec!(data, event_processor.matchers.len(), u32);
 
             for matcher in event_processor.matchers.iter() {
-                write_integer_to_vec!(data, matcher.extractor.get_code(), u32);
-                let mut serialized_extractor = matcher.extractor.serialize();
-                write_integer_to_vec!(data, serialized_extractor.len() as u8, u8);
-                data.append(&mut serialized_extractor);
+                write_integer_to_vec!(data, matcher.extractor.get_code(), u16);
+                let mut extractor = matcher.extractor.serialize();
+                write_integer_to_vec!(data, extractor.len() as u8, u8);
+                data.append(&mut extractor);
                 
-                Self::write_filter_to_vec(&mut data, &matcher.filter)?;
+                write_integer_to_vec!(data, matcher.filter.get_code(), u16);
+                let mut filter = matcher.filter.serialize();
+                write_integer_to_vec!(data, filter.len() as u8, u8);
+                data.append(&mut filter);
             }
 
             write_integer_to_vec!(data, event_processor.creators.len(), u32);
 
             for creator in event_processor.creators.iter() {
-                write_integer_to_vec!(data, creator.extractor.get_code(), u32);
+                write_integer_to_vec!(data, creator.extractor.get_code(), u16);
                 let mut extractor = creator.extractor.serialize();
                 write_integer_to_vec!(data, extractor.len() as u8, u8);
                 data.append(&mut extractor);
 
-                write_integer_to_vec!(data, creator.producer.get_code(), u32);
+                write_integer_to_vec!(data, creator.producer.get_code(), u16);
                 let mut producer = creator.producer.serialize();
                 write_integer_to_vec!(data, producer.len() as u8, u8);
                 data.append(&mut producer);
@@ -172,7 +142,9 @@ impl ConfigSerializer {
                 offset += extractor_len as usize;
 
                 let filter_code = read_integer_from_vec!(data, offset, u16);
-                let filter = Self::read_filter_from_vec(data, &mut offset, filter_code)?;
+                let filter_len = read_integer_from_vec!(data, offset, u8);
+                let filter = Self::read_filter_from_vec(data, filter_code)?;
+                offset += filter_len as usize;
 
                 matchers.push(Matcher { extractor, filter });
             }
@@ -226,142 +198,21 @@ impl ConfigSerializer {
 
     fn read_filter_from_vec(
         data: &Vec<u8>,
-        offset: &mut usize,
         filter_code: u16,
     ) -> Result<Box<dyn Filter>, ConfigSerializerError> {
-        impl_item_read!(
-            VALUE_EQUAL_TO_CONST_FILTER_CODE,
-            ValueEqualToConstFilter,
-            data,
-            offset,
-            filter_code
-        );
-        impl_item_read!(
-            STATE_EQUAL_TO_CONST_FILTER_CODE,
-            StateEqualToConstFilter,
-            data,
-            offset,
-            filter_code
-        );
-        impl_item_read!(
-            STATE_EQUAL_TO_VALUE_FILTER_CODE,
-            StateEqualToValueFilter,
-            data,
-            offset,
-            filter_code
-        );
-        impl_item_read!(
-            INCREMENT_STATE_BY_CONST_FILTER_CODE,
-            IncrementStateByConstFilter,
-            data,
-            offset,
-            filter_code
-        );
-        impl_item_read!(
-            INCREMENT_STATE_BY_VALUE_FILTER_CODE,
-            IncrementStateByValueFilter,
-            data,
-            offset,
-            filter_code
-        );
-        impl_item_read!(
-            DECREMENT_STATE_BY_CONST_FILTER_CODE,
-            DecrementStateByConstFilter,
-            data,
-            offset,
-            filter_code
-        );
-        impl_item_read!(
-            DECREMENT_STATE_BY_VALUE_FILTER_CODE,
-            DecrementStateByValueFilter,
-            data,
-            offset,
-            filter_code
-        );
-        impl_item_read!(
-            SET_STATE_TO_CONST_FILTER_CODE,
-            SetStateToConstFilter,
-            data,
-            offset,
-            filter_code
-        );
-        impl_item_read!(
-            SET_STATE_TO_VALUE_FILTER_CODE,
-            SetStateToValueFilter,
-            data,
-            offset,
-            filter_code
-        );
-        impl_item_read!(
-            FLIP_STATE_FILTER_CODE,
-            FlipStateFilter,
-            data,
-            offset,
-            filter_code
-        );
-        Err(ConfigSerializerError::UnknownFilter)
-    }
-
-    fn write_filter_to_vec(
-        data: &mut Vec<u8>,
-        filter: &Box<dyn Filter>,
-    ) -> Result<(), ConfigSerializerError> {
-        impl_item_write!(
-            VALUE_EQUAL_TO_CONST_FILTER_CODE,
-            ValueEqualToConstFilter,
-            data,
-            filter
-        );
-        impl_item_write!(
-            STATE_EQUAL_TO_CONST_FILTER_CODE,
-            StateEqualToConstFilter,
-            data,
-            filter
-        );
-        impl_item_write!(
-            STATE_EQUAL_TO_VALUE_FILTER_CODE,
-            StateEqualToValueFilter,
-            data,
-            filter
-        );
-        impl_item_write!(
-            INCREMENT_STATE_BY_CONST_FILTER_CODE,
-            IncrementStateByConstFilter,
-            data,
-            filter
-        );
-        impl_item_write!(
-            INCREMENT_STATE_BY_VALUE_FILTER_CODE,
-            IncrementStateByValueFilter,
-            data,
-            filter
-        );
-        impl_item_write!(
-            DECREMENT_STATE_BY_CONST_FILTER_CODE,
-            DecrementStateByConstFilter,
-            data,
-            filter
-        );
-        impl_item_write!(
-            DECREMENT_STATE_BY_VALUE_FILTER_CODE,
-            DecrementStateByValueFilter,
-            data,
-            filter
-        );
-        impl_item_write!(
-            SET_STATE_TO_CONST_FILTER_CODE,
-            SetStateToConstFilter,
-            data,
-            filter
-        );
-        impl_item_write!(
-            SET_STATE_TO_VALUE_FILTER_CODE,
-            SetStateToValueFilter,
-            data,
-            filter
-        );
-        impl_item_write!(FLIP_STATE_FILTER_CODE, FlipStateFilter, data, filter);
-        Err(ConfigSerializerError::UnknownFilter)
+        match filter_code {
+            VALUE_EQUAL_TO_CONST_FILTER_CODE => Ok(ValueEqualToConstFilter::try_deserialize(data)?),
+            STATE_EQUAL_TO_CONST_FILTER_CODE => Ok(StateEqualToConstFilter::try_deserialize(data)?),
+            STATE_EQUAL_TO_VALUE_FILTER_CODE => Ok(StateEqualToValueFilter::try_deserialize(data)?),
+            INCREMENT_STATE_BY_CONST_FILTER_CODE => Ok(IncrementStateByConstFilter::try_deserialize(data)?),
+            INCREMENT_STATE_BY_VALUE_FILTER_CODE => Ok(IncrementStateByValueFilter::try_deserialize(data)?),
+            DECREMENT_STATE_BY_CONST_FILTER_CODE => Ok(DecrementStateByConstFilter::try_deserialize(data)?),
+            DECREMENT_STATE_BY_VALUE_FILTER_CODE => Ok(DecrementStateByValueFilter::try_deserialize(data)?),
+            SET_STATE_TO_CONST_FILTER_CODE => Ok(SetStateToConstFilter::try_deserialize(data)?),
+            SET_STATE_TO_VALUE_FILTER_CODE => Ok(SetStateToValueFilter::try_deserialize(data)?),
+            FLIP_STATE_FILTER_CODE => Ok(FlipStateFilter::try_deserialize(data)?),
+            _ => Err(ConfigSerializerError::UnknownExtractor),
+        }
     }
 
     fn read_producer_from_vec(
@@ -396,7 +247,7 @@ mod tests {
             }],
             creators: vec![Creator {
                 extractor: Box::new(NoneExtractor::new()),
-                producer: Box::new(BcmChangeBrightnessStateProducer::new(0xff, 0xff, 0)),
+                producer: Box::new(BcmChangeBrightnessStateProducer::new(0xabab, 0xff, 0)),
             }],
         });
 
@@ -410,18 +261,22 @@ mod tests {
         let expected_data = vec![
             0x00, 0x00, 0x00, 0x01, // initial state count
             0x00, 0x00, 0x00, 0x00, // state_index
-            0x00, 0x00, 0x00, 0x02, // state_value len
+            0x02, // state_value len
             0x00, 0xff, // state_value
             0x00, 0x00, 0x00, 0x01, // event processor count
             0x00, 0x00, 0x00, 0x01, // matcher count
             0x00, 0x02, // EVENT_CODE_EXTRACTOR_CODE
+            0x00, // extractor len
             0x00, 0x00, // VALUE_EQUAL_TO_CONST_FILTER_CODE
-            0x00, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // value
+            0x02, // filter len
+            0x00, 0xff, // value
             0x00, 0x00, 0x00, 0x01, // creator count
             0x00, 0x00, // NONE_EXTRACTOR_CODE
+            0x00, // extractor len
             0x00, 0x04, // BCM_CHANGE_BRIGHTNESS_STATE_PRODUCER_CODE
-            0xff, 0x00, // bcm_address
-            0xff, 0x00, // channel
+            0x07, // producer len
+            0xab, 0xab, // bcm_address
+            0xff, // channel
             0x00, 0x00, 0x00, 0x00, // state_index
         ];
 
@@ -455,18 +310,22 @@ mod tests {
         let data = vec![
             0x00, 0x00, 0x00, 0x01, // initial state count
             0x00, 0x00, 0x00, 0x00, // state_index
-            0x00, 0x00, 0x00, 0x02, // state_value len
+            0x02, // state_value len
             0x00, 0xff, // state_value
             0x00, 0x00, 0x00, 0x01, // event processor count
             0x00, 0x00, 0x00, 0x01, // matcher count
             0x00, 0x02, // EVENT_CODE_EXTRACTOR_CODE
+            0x00, // extractor len
             0x00, 0x00, // VALUE_EQUAL_TO_CONST_FILTER_CODE
-            0x00, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // value
+            0x02, // filter len
+            0x00, 0xff, // value
             0x00, 0x00, 0x00, 0x01, // creator count
             0x00, 0x00, // NONE_EXTRACTOR_CODE
+            0x00, // extractor len
             0x00, 0x04, // BCM_CHANGE_BRIGHTNESS_STATE_PRODUCER_CODE
-            0xff, 0x00, // bcm_address
-            0xff, 0x00, // channel
+            0x07, // producer len
+            0xab, 0xab, // bcm_address
+            0xff, // channel
             0x00, 0x00, 0x00, 0x00, // state_index
         ];
 

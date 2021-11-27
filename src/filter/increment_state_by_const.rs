@@ -1,9 +1,17 @@
-use crate::filter::{Filter, FilterError};
+extern crate alloc;
+
+use alloc::vec;
+use alloc::vec::Vec;
+use alloc::boxed::Box;
+use core::convert::TryInto;
+
+use crate::filter::{Filter, FilterError, INCREMENT_STATE_BY_CONST_FILTER_CODE};
 use crate::state_manager::StateManager;
 use crate::{ExtractorValue, Value};
+use crate::serializer::{Serialize, TryDeserialize, ConfigSerializerError};
 
 #[repr(C)]
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct IncrementStateByConstFilter {
     state_index: u32,
     increment_value: Value,
@@ -43,6 +51,45 @@ impl Filter for IncrementStateByConstFilter {
         state_manager.set_value(self.state_index, new_value);
 
         Ok(true)
+    }
+
+    fn get_code(&self) -> u16 {
+        INCREMENT_STATE_BY_CONST_FILTER_CODE
+    }
+}
+
+impl Serialize for IncrementStateByConstFilter {
+    fn serialize(&self) -> Vec<u8> {
+        let state_index_bytes = self.state_index.to_be_bytes();
+
+        let mut data = vec![
+            state_index_bytes[0],
+            state_index_bytes[1],
+            state_index_bytes[2],
+            state_index_bytes[3],
+        ];
+
+        let mut increment_value_bytes = self.increment_value.serialize();
+
+        data.append(&mut increment_value_bytes);
+
+        return data;
+    }
+}
+
+impl TryDeserialize for IncrementStateByConstFilter {
+    fn try_deserialize(data: &[u8]) -> Result<Box<Self>, ConfigSerializerError> {
+        if data.len() < 9 {
+            return Err(ConfigSerializerError::WrongSize);
+        }
+
+        let state_index = u32::from_be_bytes(data[0..=3].try_into().unwrap());
+        let increment_value = *Value::try_deserialize(&data[4..])?;
+
+        Ok(Box::new(Self {
+            state_index,
+            increment_value,
+        }))
     }
 }
 
@@ -95,5 +142,59 @@ mod tests {
             filter.filter(&ExtractorValue::None, &mut state_manager),
             Err(FilterError::WrongStateType)
         );
+    }
+
+    #[test]
+    fn serialize_test() {
+        let filter = IncrementStateByConstFilter::new(0xabab_abab, Value::U32(0xffff_ffff));
+
+        let expected_data = vec![
+            0xab,
+            0xab,
+            0xab,
+            0xab,
+            0x02,
+            0xff,
+            0xff,
+            0xff,
+            0xff,
+        ];
+
+        assert_eq!(filter.serialize(), expected_data);
+    }
+
+    #[test]
+    fn deserialize_test() {
+        let data = vec![
+            0xab,
+            0xab,
+            0xab,
+            0xab,
+            0x02,
+            0xff,
+            0xff,
+            0xff,
+            0xff,
+        ];
+
+        let filter = Box::new(IncrementStateByConstFilter::new(0xabab_abab, Value::U32(0xffff_ffff)));
+
+        assert_eq!(IncrementStateByConstFilter::try_deserialize(&data), Ok(filter));
+    }
+
+    #[test]
+    fn deserialize_wrong_size_test() {
+        let data = vec![
+            0xab,
+            0xab,
+            0xab,
+            0xab,
+            0x02,
+            0xff,
+            0xff,
+            0xff,
+        ];
+
+        assert_eq!(IncrementStateByConstFilter::try_deserialize(&data), Err(ConfigSerializerError::WrongSize));
     }
 }

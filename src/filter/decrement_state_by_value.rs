@@ -1,9 +1,17 @@
-use crate::filter::{Filter, FilterError};
+extern crate alloc;
+
+use alloc::vec;
+use alloc::vec::Vec;
+use alloc::boxed::Box;
+use core::convert::TryInto;
+
+use crate::filter::{Filter, FilterError, DECREMENT_STATE_BY_VALUE_FILTER_CODE};
 use crate::state_manager::StateManager;
 use crate::{ExtractorValue, Value};
+use crate::serializer::{Serialize, TryDeserialize, ConfigSerializerError};
 
 #[repr(C)]
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct DecrementStateByValueFilter {
     state_index: u32,
 }
@@ -43,6 +51,37 @@ impl Filter for DecrementStateByValueFilter {
         state_manager.set_value(self.state_index, new_value);
 
         Ok(true)
+    }
+
+    fn get_code(&self) -> u16 {
+        DECREMENT_STATE_BY_VALUE_FILTER_CODE
+    }
+}
+
+impl Serialize for DecrementStateByValueFilter {
+    fn serialize(&self) -> Vec<u8> {
+        let state_index = self.state_index.to_be_bytes();
+
+        vec![
+            state_index[0],
+            state_index[1],
+            state_index[2],
+            state_index[3],
+        ]
+    }
+}
+
+impl TryDeserialize for DecrementStateByValueFilter {
+    fn try_deserialize(data: &[u8]) -> Result<Box<Self>, ConfigSerializerError> {
+        if data.len() < 4 {
+            return Err(ConfigSerializerError::WrongSize);
+        }
+
+        let state_index = u32::from_be_bytes(data[0..=3].try_into().unwrap());
+
+        Ok(Box::new(Self {
+            state_index,
+        }))
     }
 }
 
@@ -108,5 +147,44 @@ mod tests {
             filter.filter(&ExtractorValue::None, &mut state_manager),
             Err(FilterError::WrongValueType)
         );
+    }
+
+    #[test]
+    fn serialize_test() {
+        let filter = DecrementStateByValueFilter::new(0xabab_abab);
+
+        let expected_data = vec![
+            0xab,
+            0xab,
+            0xab,
+            0xab,
+        ];
+
+        assert_eq!(filter.serialize(), expected_data);
+    }
+
+    #[test]
+    fn deserialize_test() {
+        let data = vec![
+            0xab,
+            0xab,
+            0xab,
+            0xab,
+        ];
+
+        let filter = Box::new(DecrementStateByValueFilter::new(0xabab_abab));
+
+        assert_eq!(DecrementStateByValueFilter::try_deserialize(&data), Ok(filter));
+    }
+
+    #[test]
+    fn deserialize_wrong_size_test() {
+        let data = vec![
+            0xab,
+            0xab,
+            0xab,
+        ];
+
+        assert_eq!(DecrementStateByValueFilter::try_deserialize(&data), Err(ConfigSerializerError::WrongSize));
     }
 }
