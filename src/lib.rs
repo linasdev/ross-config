@@ -110,6 +110,9 @@ impl Serialize for MessageValue {
 
                 vec![0x02, bytes[0], bytes[1], bytes[2], bytes[3]]
             }
+            MessageValue::Bool(value) => {
+                vec![0x03, if value { 0x01 } else { 0x00 }]
+            }
         }
     }
 }
@@ -139,6 +142,13 @@ impl TryDeserialize for MessageValue {
                 let value = u32::from_be_bytes(data[1..=4].try_into().unwrap());
 
                 Ok(Box::new(MessageValue::U32(value)))
+            }
+            0x03 => {
+                if data.len() < 2 {
+                    return Err(ConfigSerializerError::WrongSize);
+                }
+
+                Ok(Box::new(MessageValue::Bool(data[1] != 0x00)))
             }
             _ => Err(ConfigSerializerError::UnknownEnumVariant),
         }
@@ -296,6 +306,24 @@ mod tests {
     }
 
     #[test]
+    fn message_value_bool_serialize_test() {
+        let value = MessageValue::Bool(true);
+
+        let expected_data = vec![0x03, 0x01];
+
+        assert_eq!(value.serialize(), expected_data);
+    }
+
+    #[test]
+    fn message_value_bool_deserialize_test() {
+        let data = vec![0x03, 0x01];
+
+        let expected_value = Box::new(MessageValue::Bool(true));
+
+        assert_eq!(MessageValue::try_deserialize(&data), Ok(expected_value));
+    }
+
+    #[test]
     fn message_value_wrong_size_test() {
         let data = vec![0x02, 0xab, 0xab, 0xab];
 
@@ -307,7 +335,7 @@ mod tests {
 
     #[test]
     fn message_value_unknown_enum_variant_test() {
-        let data = vec![0x03, 0x01];
+        let data = vec![0x04, 0x01];
 
         assert_eq!(
             MessageValue::try_deserialize(&data),
