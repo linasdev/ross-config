@@ -102,6 +102,21 @@ impl ConfigSerializer {
                 let mut producer = creator.producer.serialize();
                 write_integer_to_vec!(data, producer.len() as u8, u8);
                 data.append(&mut producer);
+
+                let matcher_count = if creator.matcher.is_some() { 1 } else { 0 };
+                write_integer_to_vec!(data, matcher_count, u8);
+
+                if let Some(matcher) = &creator.matcher {
+                    write_integer_to_vec!(data, matcher.extractor.get_code(), u16);
+                    let mut extractor = matcher.extractor.serialize();
+                    write_integer_to_vec!(data, extractor.len() as u8, u8);
+                    data.append(&mut extractor);
+    
+                    write_integer_to_vec!(data, matcher.filter.get_code(), u16);
+                    let mut filter = matcher.filter.serialize();
+                    write_integer_to_vec!(data, filter.len() as u8, u8);
+                    data.append(&mut filter);
+                }
             }
         }
 
@@ -176,9 +191,30 @@ impl ConfigSerializer {
                 )?;
                 offset += producer_len;
 
+                let mut matcher = None;
+                let matcher_count = read_integer_from_vec!(data, offset, u8);
+                if matcher_count != 0 {
+                    let extractor_code = read_integer_from_vec!(data, offset, u16);
+                    let extractor_len = read_integer_from_vec!(data, offset, u8) as usize;
+                    let extractor = Self::read_extractor_from_vec(
+                        &data[offset..offset + extractor_len],
+                        extractor_code,
+                    )?;
+                    offset += extractor_len;
+    
+                    let filter_code = read_integer_from_vec!(data, offset, u16);
+                    let filter_len = read_integer_from_vec!(data, offset, u8) as usize;
+                    let filter =
+                        Self::read_filter_from_vec(&data[offset..offset + filter_len], filter_code)?;
+                    offset += filter_len;
+    
+                    matcher = Some(Matcher { extractor, filter });
+                }
+
                 creators.push(Creator {
                     extractor,
                     producer,
+                    matcher,
                 });
             }
 
@@ -273,6 +309,7 @@ mod tests {
             creators: vec![Creator {
                 extractor: Box::new(NoneExtractor::new()),
                 producer: Box::new(BcmChangeBrightnessStateProducer::new(0xabab, 0xff, 0)),
+                matcher: None,
             }],
         });
 
@@ -303,6 +340,7 @@ mod tests {
             0xab, 0xab, // bcm_address
             0xff, // channel
             0x00, 0x00, 0x00, 0x00, // state_index
+            0x00, // matcher count
         ];
 
         assert_eq!(data, expected_data);
@@ -352,6 +390,105 @@ mod tests {
             0xab, 0xab, // bcm_address
             0xff, // channel
             0x00, 0x00, 0x00, 0x00, // state_index
+            0x00, // matcher count
+        ];
+
+        let config = ConfigSerializer::deserialize(&data).unwrap();
+
+        assert_eq!(config.initial_state.len(), 1);
+        assert_eq!(*config.initial_state.get(&0).unwrap(), Value::U8(0xff));
+        assert_eq!(config.event_processors.len(), 1);
+    }
+
+
+
+    #[test]
+    fn if_match_serialize_test() {
+        let mut initial_state = BTreeMap::new();
+        initial_state.insert(0, Value::U8(0xff));
+
+        let mut event_processors = vec![];
+        event_processors.push(EventProcessor {
+            matchers: vec![Matcher {
+                extractor: Box::new(EventCodeExtractor::new()),
+                filter: Box::new(ValueEqualToConstFilter::new(Value::U8(0xff))),
+            }],
+            creators: vec![Creator {
+                extractor: Box::new(NoneExtractor::new()),
+                producer: Box::new(BcmChangeBrightnessStateProducer::new(0xabab, 0xff, 0)),
+                matcher: Some(Matcher {
+                    extractor: Box::new(EventCodeExtractor::new()),
+                    filter: Box::new(ValueEqualToConstFilter::new(Value::U8(0xff))),
+                }),
+            }],
+        });
+
+        let config = Config {
+            initial_state,
+            event_processors,
+        };
+
+        let data = ConfigSerializer::serialize(&config).unwrap();
+
+        let expected_data = vec![
+            0x00, 0x00, 0x00, 0x01, // initial state count
+            0x00, 0x00, 0x00, 0x00, // state_index
+            0x02, // state_value len
+            0x00, 0xff, // state_value
+            0x00, 0x00, 0x00, 0x01, // event processor count
+            0x00, 0x00, 0x00, 0x01, // matcher count
+            0x00, 0x02, // EVENT_CODE_EXTRACTOR_CODE
+            0x00, // extractor len
+            0x00, 0x00, // VALUE_EQUAL_TO_CONST_FILTER_CODE
+            0x02, // filter len
+            0x00, 0xff, // value
+            0x00, 0x00, 0x00, 0x01, // creator count
+            0x00, 0x00, // NONE_EXTRACTOR_CODE
+            0x00, // extractor len
+            0x00, 0x04, // BCM_CHANGE_BRIGHTNESS_STATE_PRODUCER_CODE
+            0x07, // producer len
+            0xab, 0xab, // bcm_address
+            0xff, // channel
+            0x00, 0x00, 0x00, 0x00, // state_index
+            0x01, // matcher count
+            0x00, 0x02, // EVENT_CODE_EXTRACTOR_CODE
+            0x00, // extractor len
+            0x00, 0x00, // VALUE_EQUAL_TO_CONST_FILTER_CODE
+            0x02, // filter len
+            0x00, 0xff, // value
+        ];
+
+        assert_eq!(data, expected_data);
+    }
+
+    #[test]
+    fn if_match_deserialize_test() {
+        let data = vec![
+            0x00, 0x00, 0x00, 0x01, // initial state count
+            0x00, 0x00, 0x00, 0x00, // state_index
+            0x02, // state_value len
+            0x00, 0xff, // state_value
+            0x00, 0x00, 0x00, 0x01, // event processor count
+            0x00, 0x00, 0x00, 0x01, // matcher count
+            0x00, 0x02, // EVENT_CODE_EXTRACTOR_CODE
+            0x00, // extractor len
+            0x00, 0x00, // VALUE_EQUAL_TO_CONST_FILTER_CODE
+            0x02, // filter len
+            0x00, 0xff, // value
+            0x00, 0x00, 0x00, 0x01, // creator count
+            0x00, 0x00, // NONE_EXTRACTOR_CODE
+            0x00, // extractor len
+            0x00, 0x04, // BCM_CHANGE_BRIGHTNESS_STATE_PRODUCER_CODE
+            0x07, // producer len
+            0xab, 0xab, // bcm_address
+            0xff, // channel
+            0x00, 0x00, 0x00, 0x00, // state_index
+            0x01, // matcher count
+            0x00, 0x02, // EVENT_CODE_EXTRACTOR_CODE
+            0x00, // extractor len
+            0x00, 0x00, // VALUE_EQUAL_TO_CONST_FILTER_CODE
+            0x02, // filter len
+            0x00, 0xff, // value
         ];
 
         let config = ConfigSerializer::deserialize(&data).unwrap();
