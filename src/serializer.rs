@@ -111,7 +111,7 @@ impl ConfigSerializer {
                     let mut extractor = matcher.extractor.serialize();
                     write_integer_to_vec!(data, extractor.len() as u8, u8);
                     data.append(&mut extractor);
-    
+
                     write_integer_to_vec!(data, matcher.filter.get_code(), u16);
                     let mut filter = matcher.filter.serialize();
                     write_integer_to_vec!(data, filter.len() as u8, u8);
@@ -201,13 +201,15 @@ impl ConfigSerializer {
                         extractor_code,
                     )?;
                     offset += extractor_len;
-    
+
                     let filter_code = read_integer_from_vec!(data, offset, u16);
                     let filter_len = read_integer_from_vec!(data, offset, u8) as usize;
-                    let filter =
-                        Self::read_filter_from_vec(&data[offset..offset + filter_len], filter_code)?;
+                    let filter = Self::read_filter_from_vec(
+                        &data[offset..offset + filter_len],
+                        filter_code,
+                    )?;
                     offset += filter_len;
-    
+
                     matcher = Some(Matcher { extractor, filter });
                 }
 
@@ -399,8 +401,6 @@ mod tests {
         assert_eq!(*config.initial_state.get(&0).unwrap(), Value::U8(0xff));
         assert_eq!(config.event_processors.len(), 1);
     }
-
-
 
     #[test]
     fn if_match_serialize_test() {

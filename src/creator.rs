@@ -5,8 +5,8 @@ use alloc::boxed::Box;
 use ross_protocol::packet::Packet;
 
 use crate::extractor::{Extractor, ExtractorError};
-use crate::producer::{Producer, ProducerError};
 use crate::matcher::{Matcher, MatcherError};
+use crate::producer::{Producer, ProducerError};
 use crate::state_manager::StateManager;
 
 #[derive(Debug)]
@@ -33,7 +33,7 @@ impl Creator {
         if let Some(matcher) = &mut self.matcher {
             match matcher.do_match(packet, state_manager) {
                 Ok(success) if !success => return Ok(None),
-                Ok(_) => {},
+                Ok(_) => {}
                 Err(err) => return Err(CreatorError::MatcherError(err)),
             }
         }
