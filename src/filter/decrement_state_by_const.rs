@@ -79,7 +79,7 @@ impl Serialize for DecrementStateByConstFilter {
 
 impl TryDeserialize for DecrementStateByConstFilter {
     fn try_deserialize(data: &[u8]) -> Result<Box<Self>, ConfigSerializerError> {
-        if data.len() < 9 {
+        if data.len() < 6 {
             return Err(ConfigSerializerError::WrongSize);
         }
 

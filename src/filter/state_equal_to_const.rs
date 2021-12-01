@@ -67,7 +67,7 @@ impl Serialize for StateEqualToConstFilter {
 
 impl TryDeserialize for StateEqualToConstFilter {
     fn try_deserialize(data: &[u8]) -> Result<Box<Self>, ConfigSerializerError> {
-        if data.len() < 9 {
+        if data.len() < 6 {
             return Err(ConfigSerializerError::WrongSize);
         }
 

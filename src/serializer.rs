@@ -108,7 +108,7 @@ impl ConfigSerializer {
         Ok(data)
     }
 
-    pub fn deserialize(data: &Vec<u8>) -> Result<Config, ConfigSerializerError> {
+    pub fn deserialize(data: &[u8]) -> Result<Config, ConfigSerializerError> {
         let mut offset = 0;
 
         let initial_state_count = read_integer_from_vec!(data, offset, u32);
