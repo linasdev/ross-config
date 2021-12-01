@@ -138,14 +138,14 @@ impl ConfigSerializer {
 
             for _ in 0..matcher_count {
                 let extractor_code = read_integer_from_vec!(data, offset, u16);
-                let extractor_len = read_integer_from_vec!(data, offset, u8);
-                let extractor = Self::read_extractor_from_vec(data, extractor_code)?;
-                offset += extractor_len as usize;
+                let extractor_len = read_integer_from_vec!(data, offset, u8) as usize;
+                let extractor = Self::read_extractor_from_vec(&data[offset..offset + extractor_len], extractor_code)?;
+                offset += extractor_len;
 
                 let filter_code = read_integer_from_vec!(data, offset, u16);
-                let filter_len = read_integer_from_vec!(data, offset, u8);
-                let filter = Self::read_filter_from_vec(data, filter_code)?;
-                offset += filter_len as usize;
+                let filter_len = read_integer_from_vec!(data, offset, u8) as usize;
+                let filter = Self::read_filter_from_vec(&data[offset..offset + filter_len], filter_code)?;
+                offset += filter_len;
 
                 matchers.push(Matcher { extractor, filter });
             }
@@ -157,14 +157,14 @@ impl ConfigSerializer {
 
             for _ in 0..creator_count {
                 let extractor_code = read_integer_from_vec!(data, offset, u16);
-                let extractor_len = read_integer_from_vec!(data, offset, u8);
-                let extractor = Self::read_extractor_from_vec(data, extractor_code)?;
-                offset += extractor_len as usize;
+                let extractor_len = read_integer_from_vec!(data, offset, u8) as usize;
+                let extractor = Self::read_extractor_from_vec(&data[offset..offset + extractor_len], extractor_code)?;
+                offset += extractor_len;
 
                 let producer_code = read_integer_from_vec!(data, offset, u16);
-                let producer_len = read_integer_from_vec!(data, offset, u8);
-                let producer = Self::read_producer_from_vec(data, producer_code)?;
-                offset += producer_len as usize;
+                let producer_len = read_integer_from_vec!(data, offset, u8) as usize;
+                let producer = Self::read_producer_from_vec(&data[offset..offset + producer_len], producer_code)?;
+                offset += producer_len;
 
                 creators.push(Creator {
                     extractor,
@@ -182,7 +182,7 @@ impl ConfigSerializer {
     }
 
     fn read_extractor_from_vec(
-        data: &Vec<u8>,
+        data: &[u8],
         extractor_code: u16,
     ) -> Result<Box<dyn Extractor>, ConfigSerializerError> {
         match extractor_code {
@@ -200,7 +200,7 @@ impl ConfigSerializer {
     }
 
     fn read_filter_from_vec(
-        data: &Vec<u8>,
+        data: &[u8],
         filter_code: u16,
     ) -> Result<Box<dyn Filter>, ConfigSerializerError> {
         match filter_code {
@@ -227,7 +227,7 @@ impl ConfigSerializer {
     }
 
     fn read_producer_from_vec(
-        data: &Vec<u8>,
+        data: &[u8],
         producer_code: u16,
     ) -> Result<Box<dyn Producer>, ConfigSerializerError> {
         match producer_code {
