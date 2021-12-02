@@ -4,15 +4,43 @@ use alloc::boxed::Box;
 use alloc::collections::BTreeSet;
 use alloc::vec;
 use alloc::vec::Vec;
+use chrono::{DateTime, Datelike, Timelike, Utc};
+use core::ops::AddAssign;
 
 use crate::serializer::{ConfigSerializerError, Serialize, TryDeserialize};
 use crate::{serialize_integer_to_vec, try_deserialize_integer_from_vec};
 
 #[derive(Debug, PartialEq)]
-pub enum CronField<T> {
+pub enum CronField<T: Ord + AddAssign> {
     Including(BTreeSet<T>),
     Excluding(BTreeSet<T>),
     EveryFromTo(T, T, T),
+}
+
+impl<T: Ord + AddAssign> CronField<T> {
+    fn do_match(&self, value: T) -> bool {
+        match self {
+            CronField::Including(values) => values.contains(&value),
+            CronField::Excluding(values) => values.contains(&value),
+            CronField::EveryFromTo(every, from, to) => {
+                let mut current_value = *from;
+
+                loop {
+                    if current_value == value {
+                        return true;
+                    }
+
+                    current_value += *every;
+
+                    if current_value > *to {
+                        break;
+                    }
+                }
+
+                return false;
+            }
+        }
+    }
 }
 
 impl Serialize for CronField<u8> {
@@ -189,6 +217,43 @@ pub struct CronExpression {
     month: CronField<u8>,
     day_week: CronField<u8>,
     year: CronField<u16>,
+}
+
+impl CronExpression {
+    fn do_match(&self, date_time: DateTime<Utc>) -> bool {
+        if !self.second.do_match(date_time.second() as u8) {
+            return false;
+        }
+
+        if !self.minute.do_match(date_time.minute() as u8) {
+            return false;
+        }
+
+        if !self.hour.do_match(date_time.hour() as u8) {
+            return false;
+        }
+
+        if !self.day_month.do_match(date_time.day0() as u8) {
+            return false;
+        }
+
+        if !self.month.do_match(date_time.month0() as u8) {
+            return false;
+        }
+
+        if !self
+            .day_week
+            .do_match(date_time.weekday().num_days_from_monday() as u8)
+        {
+            return false;
+        }
+
+        if !self.year.do_match(date_time.year() as u16) {
+            return false;
+        }
+
+        return true;
+    }
 }
 
 impl Serialize for CronExpression {
@@ -450,7 +515,7 @@ mod tests {
             second: CronField::Including(included_values),
             minute: CronField::Excluding(excluded_values),
             hour: CronField::EveryFromTo(1, 0, 59),
-            day_month: CronField::EveryFromTo(1, 0, 31),
+            day_month: CronField::EveryFromTo(1, 0, 30),
             month: CronField::EveryFromTo(1, 0, 11),
             day_week: CronField::EveryFromTo(1, 0, 6),
             year: CronField::EveryFromTo(0x0123, 0xabab, 0xffff),
@@ -460,7 +525,7 @@ mod tests {
             5, 0, 3, 0, 15, 59, // second
             5, 1, 3, 0, 15, 59, // minute
             4, 2, 1, 0, 59, // hour
-            4, 2, 1, 0, 31, // day (month)
+            4, 2, 1, 0, 30, // day (month)
             4, 2, 1, 0, 11, // month
             4, 2, 1, 0, 6, // day (week)
             7, 2, 0x01, 0x23, 0xab, 0xab, 0xff, 0xff, // year
@@ -475,7 +540,7 @@ mod tests {
             5, 0, 3, 0, 15, 59, // second
             5, 1, 3, 0, 15, 59, // minute
             4, 2, 1, 0, 59, // hour
-            4, 2, 1, 0, 31, // day (month)
+            4, 2, 1, 0, 30, // day (month)
             4, 2, 1, 0, 11, // month
             4, 2, 1, 0, 6, // day (week)
             7, 2, 0x01, 0x23, 0xab, 0xab, 0xff, 0xff, // year
@@ -497,7 +562,7 @@ mod tests {
                 second: CronField::Including(expected_included_values),
                 minute: CronField::Excluding(expected_excluded_values),
                 hour: CronField::EveryFromTo(1, 0, 59),
-                day_month: CronField::EveryFromTo(1, 0, 31),
+                day_month: CronField::EveryFromTo(1, 0, 30),
                 month: CronField::EveryFromTo(1, 0, 11),
                 day_week: CronField::EveryFromTo(1, 0, 6),
                 year: CronField::EveryFromTo(0x0123, 0xabab, 0xffff),
