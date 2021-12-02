@@ -66,7 +66,9 @@ impl Extractor for MessageValueExtractor {
                     MessageValue::U8(value) => Ok(ExtractorValue::U8(value)),
                     MessageValue::U16(value) => Ok(ExtractorValue::U16(value)),
                     MessageValue::U32(value) => Ok(ExtractorValue::U32(value)),
-                    // Required because event.value is not guaranteed to be valid
+                    MessageValue::Bool(value) => Ok(ExtractorValue::Bool(value)),
+                    // Required because event.value is not guaranteed to be valid (for now)
+                    // TODO: remove
                     #[allow(unreachable_patterns)]
                     _ => Err(ExtractorError::ConvertValueError),
                 }
