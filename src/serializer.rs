@@ -72,7 +72,7 @@ impl ConfigSerializer {
         for state in config.initial_state.iter() {
             serialize_integer_to_vec!(data, *state.0, u32);
             let mut serialized_state = state.1.serialize();
-            serialize_integer_to_vec!(data, serialized_state.len() as u8, u8);
+            serialize_integer_to_vec!(data, serialized_state.len(), u8);
             data.append(&mut serialized_state);
         }
 
@@ -80,7 +80,7 @@ impl ConfigSerializer {
 
         for event_processor in config.event_processors.iter() {
             let mut matcher = event_processor.matcher.serialize();
-            serialize_integer_to_vec!(data, matcher.len() as u32, u32);
+            serialize_integer_to_vec!(data, matcher.len(), u32);
             data.append(&mut matcher);
 
             serialize_integer_to_vec!(data, event_processor.creators.len(), u32);
@@ -88,12 +88,12 @@ impl ConfigSerializer {
             for creator in event_processor.creators.iter() {
                 serialize_integer_to_vec!(data, creator.extractor.get_code(), u16);
                 let mut extractor = creator.extractor.serialize();
-                serialize_integer_to_vec!(data, extractor.len() as u8, u8);
+                serialize_integer_to_vec!(data, extractor.len(), u8);
                 data.append(&mut extractor);
 
                 serialize_integer_to_vec!(data, creator.producer.get_code(), u16);
                 let mut producer = creator.producer.serialize();
-                serialize_integer_to_vec!(data, producer.len() as u8, u8);
+                serialize_integer_to_vec!(data, producer.len(), u8);
                 data.append(&mut producer);
 
                 let matcher_exists = if creator.matcher.is_some() { 1 } else { 0 };
@@ -101,7 +101,7 @@ impl ConfigSerializer {
 
                 if let Some(matcher) = &creator.matcher {
                     let mut matcher = matcher.serialize();
-                    serialize_integer_to_vec!(data, matcher.len() as u32, u32);
+                    serialize_integer_to_vec!(data, matcher.len(), u32);
                     data.append(&mut matcher);
                 }
             }
@@ -127,20 +127,20 @@ impl ConfigSerializer {
             initial_state.insert(state_index, state_value);
         }
 
-        let event_processor_count = try_deserialize_integer_from_vec!(data, offset, u32);
+        let event_processor_count = try_deserialize_integer_from_vec!(data, offset, u32) as usize;
 
         let mut event_processors = vec![];
-        event_processors.reserve(event_processor_count as usize);
+        event_processors.reserve(event_processor_count);
 
         for _ in 0..event_processor_count {
             let matcher_len = try_deserialize_integer_from_vec!(data, offset, u32) as usize;
             let matcher = *Matcher::try_deserialize(&data[offset..offset + matcher_len])?;
             offset += matcher_len;
 
-            let creator_count = try_deserialize_integer_from_vec!(data, offset, u32);
+            let creator_count = try_deserialize_integer_from_vec!(data, offset, u32) as usize;
 
             let mut creators = vec![];
-            creators.reserve(creator_count as usize);
+            creators.reserve(creator_count);
 
             for _ in 0..creator_count {
                 let extractor_code = try_deserialize_integer_from_vec!(data, offset, u16);
