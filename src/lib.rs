@@ -13,6 +13,7 @@ use crate::serializer::{ConfigSerializerError, Serialize, TryDeserialize};
 
 pub mod config;
 pub mod creator;
+pub mod cron;
 pub mod event_processor;
 pub mod extractor;
 pub mod filter;
