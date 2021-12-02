@@ -11,13 +11,14 @@ use crate::serializer::{ConfigSerializerError, Serialize, TryDeserialize};
 use crate::{serialize_integer_to_vec, try_deserialize_integer_from_vec};
 
 #[derive(Debug, PartialEq)]
-pub enum CronField<T: Ord + AddAssign> {
+pub enum CronField<T: Copy + Ord + AddAssign> {
     Including(BTreeSet<T>),
     Excluding(BTreeSet<T>),
     EveryFromTo(T, T, T),
+    Any,
 }
 
-impl<T: Ord + AddAssign> CronField<T> {
+impl<T: Copy + Ord + AddAssign> CronField<T> {
     fn do_match(&self, value: T) -> bool {
         match self {
             CronField::Including(values) => values.contains(&value),
@@ -27,18 +28,17 @@ impl<T: Ord + AddAssign> CronField<T> {
 
                 loop {
                     if current_value == value {
-                        return true;
+                        break true;
                     }
 
                     current_value += *every;
 
                     if current_value > *to {
-                        break;
+                        break false;
                     }
                 }
-
-                return false;
             }
+            CronField::Any => true,
         }
     }
 }
@@ -69,18 +69,23 @@ impl Serialize for CronField<u8> {
                 data
             }
             CronField::EveryFromTo(every, from, to) => vec![0x02, *every, *from, *to],
+            CronField::Any => vec![0x03],
         }
     }
 }
 
 impl TryDeserialize for CronField<u8> {
     fn try_deserialize(data: &[u8]) -> Result<Box<Self>, ConfigSerializerError> {
-        if data.len() < 2 {
+        if data.len() < 1 {
             return Err(ConfigSerializerError::WrongSize);
         }
 
         match data[0] {
             0x00 => {
+                if data.len() < 2 {
+                    return Err(ConfigSerializerError::WrongSize);
+                }
+
                 let mut values = BTreeSet::new();
                 let value_count = data[1];
 
@@ -94,6 +99,10 @@ impl TryDeserialize for CronField<u8> {
                 Ok(Box::new(CronField::Including(values)))
             }
             0x01 => {
+                if data.len() < 2 {
+                    return Err(ConfigSerializerError::WrongSize);
+                }
+
                 let mut values = BTreeSet::new();
                 let value_count = data[1];
 
@@ -113,6 +122,7 @@ impl TryDeserialize for CronField<u8> {
 
                 Ok(Box::new(CronField::EveryFromTo(data[1], data[2], data[3])))
             }
+            0x03 => Ok(Box::new(CronField::Any)),
             _ => Err(ConfigSerializerError::UnknownEnumVariant),
         }
     }
@@ -152,18 +162,23 @@ impl Serialize for CronField<u16> {
 
                 data
             }
+            CronField::Any => vec![0x03],
         }
     }
 }
 
 impl TryDeserialize for CronField<u16> {
     fn try_deserialize(data: &[u8]) -> Result<Box<Self>, ConfigSerializerError> {
-        if data.len() < 2 {
+        if data.len() < 1 {
             return Err(ConfigSerializerError::WrongSize);
         }
 
         match data[0] {
             0x00 => {
+                if data.len() < 2 {
+                    return Err(ConfigSerializerError::WrongSize);
+                }
+
                 let mut values = BTreeSet::new();
                 let value_count = data[1];
 
@@ -177,6 +192,10 @@ impl TryDeserialize for CronField<u16> {
                 Ok(Box::new(CronField::Including(values)))
             }
             0x01 => {
+                if data.len() < 2 {
+                    return Err(ConfigSerializerError::WrongSize);
+                }
+
                 let mut values = BTreeSet::new();
                 let value_count = data[1];
 
@@ -203,6 +222,7 @@ impl TryDeserialize for CronField<u16> {
 
                 Ok(Box::new(CronField::EveryFromTo(every, from, to)))
             }
+            0x03 => Ok(Box::new(CronField::Any)),
             _ => Err(ConfigSerializerError::UnknownEnumVariant),
         }
     }
@@ -421,6 +441,25 @@ mod tests {
     }
 
     #[test]
+    fn field_serialize_any_u8_test() {
+        let field = CronField::<u8>::Any;
+
+        let expected_data = vec![0x03];
+
+        assert_eq!(field.serialize(), expected_data)
+    }
+
+    #[test]
+    fn field_try_deserialize_any_u8_test() {
+        let data = vec![0x03];
+
+        assert_eq!(
+            CronField::<u8>::try_deserialize(&data),
+            Ok(Box::new(CronField::<u8>::Any)),
+        )
+    }
+
+    #[test]
     fn field_serialize_including_u16_test() {
         let mut values = BTreeSet::new();
         values.insert(0xabab);
@@ -500,6 +539,25 @@ mod tests {
     }
 
     #[test]
+    fn field_serialize_any_u16_test() {
+        let field = CronField::<u16>::Any;
+
+        let expected_data = vec![0x03];
+
+        assert_eq!(field.serialize(), expected_data)
+    }
+
+    #[test]
+    fn field_try_deserialize_any_u16_test() {
+        let data = vec![0x03];
+
+        assert_eq!(
+            CronField::<u16>::try_deserialize(&data),
+            Ok(Box::new(CronField::<u16>::Any)),
+        )
+    }
+
+    #[test]
     fn expression_serialize_test() {
         let mut included_values = BTreeSet::new();
         included_values.insert(0);
@@ -514,20 +572,20 @@ mod tests {
         let expression = CronExpression {
             second: CronField::Including(included_values),
             minute: CronField::Excluding(excluded_values),
-            hour: CronField::EveryFromTo(1, 0, 59),
-            day_month: CronField::EveryFromTo(1, 0, 30),
-            month: CronField::EveryFromTo(1, 0, 11),
-            day_week: CronField::EveryFromTo(1, 0, 6),
+            hour: CronField::Any,
+            day_month: CronField::Any,
+            month: CronField::Any,
+            day_week: CronField::Any,
             year: CronField::EveryFromTo(0x0123, 0xabab, 0xffff),
         };
 
         let expected_data = vec![
             5, 0, 3, 0, 15, 59, // second
             5, 1, 3, 0, 15, 59, // minute
-            4, 2, 1, 0, 59, // hour
-            4, 2, 1, 0, 30, // day (month)
-            4, 2, 1, 0, 11, // month
-            4, 2, 1, 0, 6, // day (week)
+            1, 3, // hour
+            1, 3, // day (month)
+            1, 3, // month
+            1, 3, // day (week)
             7, 2, 0x01, 0x23, 0xab, 0xab, 0xff, 0xff, // year
         ];
 
@@ -539,10 +597,10 @@ mod tests {
         let data = vec![
             5, 0, 3, 0, 15, 59, // second
             5, 1, 3, 0, 15, 59, // minute
-            4, 2, 1, 0, 59, // hour
-            4, 2, 1, 0, 30, // day (month)
-            4, 2, 1, 0, 11, // month
-            4, 2, 1, 0, 6, // day (week)
+            1, 3, // hour
+            1, 3, // day (month)
+            1, 3, // month
+            1, 3, // day (week)
             7, 2, 0x01, 0x23, 0xab, 0xab, 0xff, 0xff, // year
         ];
 
