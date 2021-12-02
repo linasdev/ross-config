@@ -4,8 +4,6 @@ use alloc::boxed::Box;
 use alloc::collections::BTreeMap;
 use alloc::vec;
 use alloc::vec::Vec;
-use core::convert::TryInto;
-use core::mem::size_of;
 
 use crate::config::Config;
 use crate::creator::Creator;
@@ -16,8 +14,12 @@ use crate::matcher::Matcher;
 use crate::producer::*;
 use crate::Value;
 
-macro_rules! read_integer_from_vec {
+#[macro_export]
+macro_rules! try_deserialize_integer_from_vec {
     ($data:expr, $offset:expr, $integer_type:ty) => {{
+        use core::convert::TryInto;
+        use core::mem::size_of;
+
         const SIZE: usize = size_of::<$integer_type>();
 
         if $data.len() < $offset + SIZE {
@@ -33,7 +35,8 @@ macro_rules! read_integer_from_vec {
     }};
 }
 
-macro_rules! write_integer_to_vec {
+#[macro_export]
+macro_rules! serialize_integer_to_vec {
     ($data:expr, $integer:expr, $integer_type:ty) => {
         for byte in <$integer_type>::to_be_bytes($integer as $integer_type).iter() {
             $data.push(*byte);
@@ -64,58 +67,46 @@ impl ConfigSerializer {
     pub fn serialize(config: &Config) -> Result<Vec<u8>, ConfigSerializerError> {
         let mut data = vec![];
 
-        write_integer_to_vec!(data, config.initial_state.len(), u32);
+        serialize_integer_to_vec!(data, config.initial_state.len(), u32);
 
         for state in config.initial_state.iter() {
-            write_integer_to_vec!(data, *state.0, u32);
+            serialize_integer_to_vec!(data, *state.0, u32);
             let mut serialized_state = state.1.serialize();
-            write_integer_to_vec!(data, serialized_state.len() as u8, u8);
+            serialize_integer_to_vec!(data, serialized_state.len() as u8, u8);
             data.append(&mut serialized_state);
         }
 
-        write_integer_to_vec!(data, config.event_processors.len(), u32);
+        serialize_integer_to_vec!(data, config.event_processors.len(), u32);
 
         for event_processor in config.event_processors.iter() {
-            write_integer_to_vec!(data, event_processor.matchers.len(), u32);
+            serialize_integer_to_vec!(data, event_processor.matchers.len(), u32);
 
             for matcher in event_processor.matchers.iter() {
-                write_integer_to_vec!(data, matcher.extractor.get_code(), u16);
-                let mut extractor = matcher.extractor.serialize();
-                write_integer_to_vec!(data, extractor.len() as u8, u8);
-                data.append(&mut extractor);
-
-                write_integer_to_vec!(data, matcher.filter.get_code(), u16);
-                let mut filter = matcher.filter.serialize();
-                write_integer_to_vec!(data, filter.len() as u8, u8);
-                data.append(&mut filter);
+                let mut matcher = matcher.serialize();
+                serialize_integer_to_vec!(data, matcher.len() as u32, u32);
+                data.append(&mut matcher);
             }
 
-            write_integer_to_vec!(data, event_processor.creators.len(), u32);
+            serialize_integer_to_vec!(data, event_processor.creators.len(), u32);
 
             for creator in event_processor.creators.iter() {
-                write_integer_to_vec!(data, creator.extractor.get_code(), u16);
+                serialize_integer_to_vec!(data, creator.extractor.get_code(), u16);
                 let mut extractor = creator.extractor.serialize();
-                write_integer_to_vec!(data, extractor.len() as u8, u8);
+                serialize_integer_to_vec!(data, extractor.len() as u8, u8);
                 data.append(&mut extractor);
 
-                write_integer_to_vec!(data, creator.producer.get_code(), u16);
+                serialize_integer_to_vec!(data, creator.producer.get_code(), u16);
                 let mut producer = creator.producer.serialize();
-                write_integer_to_vec!(data, producer.len() as u8, u8);
+                serialize_integer_to_vec!(data, producer.len() as u8, u8);
                 data.append(&mut producer);
 
                 let matcher_count = if creator.matcher.is_some() { 1 } else { 0 };
-                write_integer_to_vec!(data, matcher_count, u8);
+                serialize_integer_to_vec!(data, matcher_count, u8);
 
                 if let Some(matcher) = &creator.matcher {
-                    write_integer_to_vec!(data, matcher.extractor.get_code(), u16);
-                    let mut extractor = matcher.extractor.serialize();
-                    write_integer_to_vec!(data, extractor.len() as u8, u8);
-                    data.append(&mut extractor);
-
-                    write_integer_to_vec!(data, matcher.filter.get_code(), u16);
-                    let mut filter = matcher.filter.serialize();
-                    write_integer_to_vec!(data, filter.len() as u8, u8);
-                    data.append(&mut filter);
+                    let mut matcher = matcher.serialize();
+                    serialize_integer_to_vec!(data, matcher.len() as u32, u32);
+                    data.append(&mut matcher);
                 }
             }
         }
@@ -126,12 +117,12 @@ impl ConfigSerializer {
     pub fn deserialize(data: &[u8]) -> Result<Config, ConfigSerializerError> {
         let mut offset = 0;
 
-        let initial_state_count = read_integer_from_vec!(data, offset, u32);
+        let initial_state_count = try_deserialize_integer_from_vec!(data, offset, u32);
         let mut initial_state = BTreeMap::new();
 
         for _ in 0..initial_state_count {
-            let state_index = read_integer_from_vec!(data, offset, u32);
-            let serialized_state_len = read_integer_from_vec!(data, offset, u8) as usize;
+            let state_index = try_deserialize_integer_from_vec!(data, offset, u32);
+            let serialized_state_len = try_deserialize_integer_from_vec!(data, offset, u8) as usize;
 
             let state_value =
                 *Value::try_deserialize(&data[offset..offset + serialized_state_len])?;
@@ -140,77 +131,51 @@ impl ConfigSerializer {
             initial_state.insert(state_index, state_value);
         }
 
-        let event_processor_count = read_integer_from_vec!(data, offset, u32);
+        let event_processor_count = try_deserialize_integer_from_vec!(data, offset, u32);
 
         let mut event_processors = vec![];
         event_processors.reserve(event_processor_count as usize);
 
         for _ in 0..event_processor_count {
-            let matcher_count = read_integer_from_vec!(data, offset, u32);
+            let matcher_count = try_deserialize_integer_from_vec!(data, offset, u32);
 
             let mut matchers = vec![];
             matchers.reserve(matcher_count as usize);
 
             for _ in 0..matcher_count {
-                let extractor_code = read_integer_from_vec!(data, offset, u16);
-                let extractor_len = read_integer_from_vec!(data, offset, u8) as usize;
-                let extractor = Self::read_extractor_from_vec(
-                    &data[offset..offset + extractor_len],
-                    extractor_code,
-                )?;
-                offset += extractor_len;
-
-                let filter_code = read_integer_from_vec!(data, offset, u16);
-                let filter_len = read_integer_from_vec!(data, offset, u8) as usize;
-                let filter =
-                    Self::read_filter_from_vec(&data[offset..offset + filter_len], filter_code)?;
-                offset += filter_len;
-
-                matchers.push(Matcher { extractor, filter });
+                let matcher_len = try_deserialize_integer_from_vec!(data, offset, u32) as usize;
+                matchers.push(*Matcher::try_deserialize(&data[offset..offset + matcher_len])?);
+                offset += matcher_len;
             }
 
-            let creator_count = read_integer_from_vec!(data, offset, u32);
+            let creator_count = try_deserialize_integer_from_vec!(data, offset, u32);
 
             let mut creators = vec![];
             creators.reserve(creator_count as usize);
 
             for _ in 0..creator_count {
-                let extractor_code = read_integer_from_vec!(data, offset, u16);
-                let extractor_len = read_integer_from_vec!(data, offset, u8) as usize;
-                let extractor = Self::read_extractor_from_vec(
+                let extractor_code = try_deserialize_integer_from_vec!(data, offset, u16);
+                let extractor_len = try_deserialize_integer_from_vec!(data, offset, u8) as usize;
+                let extractor = Self::try_deserialize_extractor_from_vec(
                     &data[offset..offset + extractor_len],
                     extractor_code,
                 )?;
                 offset += extractor_len;
 
-                let producer_code = read_integer_from_vec!(data, offset, u16);
-                let producer_len = read_integer_from_vec!(data, offset, u8) as usize;
-                let producer = Self::read_producer_from_vec(
+                let producer_code = try_deserialize_integer_from_vec!(data, offset, u16);
+                let producer_len = try_deserialize_integer_from_vec!(data, offset, u8) as usize;
+                let producer = Self::try_deserialize_producer_from_vec(
                     &data[offset..offset + producer_len],
                     producer_code,
                 )?;
                 offset += producer_len;
 
                 let mut matcher = None;
-                let matcher_count = read_integer_from_vec!(data, offset, u8);
+                let matcher_count = try_deserialize_integer_from_vec!(data, offset, u8);
                 if matcher_count != 0 {
-                    let extractor_code = read_integer_from_vec!(data, offset, u16);
-                    let extractor_len = read_integer_from_vec!(data, offset, u8) as usize;
-                    let extractor = Self::read_extractor_from_vec(
-                        &data[offset..offset + extractor_len],
-                        extractor_code,
-                    )?;
-                    offset += extractor_len;
-
-                    let filter_code = read_integer_from_vec!(data, offset, u16);
-                    let filter_len = read_integer_from_vec!(data, offset, u8) as usize;
-                    let filter = Self::read_filter_from_vec(
-                        &data[offset..offset + filter_len],
-                        filter_code,
-                    )?;
-                    offset += filter_len;
-
-                    matcher = Some(Matcher { extractor, filter });
+                    let matcher_len = try_deserialize_integer_from_vec!(data, offset, u32) as usize;
+                    matcher = Some(*Matcher::try_deserialize(&data[offset..offset + matcher_len])?);
+                    offset += matcher_len;
                 }
 
                 creators.push(Creator {
@@ -229,7 +194,7 @@ impl ConfigSerializer {
         })
     }
 
-    fn read_extractor_from_vec(
+    pub fn try_deserialize_extractor_from_vec(
         data: &[u8],
         extractor_code: u16,
     ) -> Result<Box<dyn Extractor>, ConfigSerializerError> {
@@ -247,7 +212,7 @@ impl ConfigSerializer {
         }
     }
 
-    fn read_filter_from_vec(
+    pub fn try_deserialize_filter_from_vec(
         data: &[u8],
         filter_code: u16,
     ) -> Result<Box<dyn Filter>, ConfigSerializerError> {
@@ -274,7 +239,7 @@ impl ConfigSerializer {
         }
     }
 
-    fn read_producer_from_vec(
+    pub fn try_deserialize_producer_from_vec(
         data: &[u8],
         producer_code: u16,
     ) -> Result<Box<dyn Producer>, ConfigSerializerError> {
@@ -304,7 +269,7 @@ mod tests {
 
         let mut event_processors = vec![];
         event_processors.push(EventProcessor {
-            matchers: vec![Matcher {
+            matchers: vec![Matcher::Single {
                 extractor: Box::new(EventCodeExtractor::new()),
                 filter: Box::new(ValueEqualToConstFilter::new(Value::U8(0xff))),
             }],
@@ -325,10 +290,12 @@ mod tests {
         let expected_data = vec![
             0x00, 0x00, 0x00, 0x01, // initial state count
             0x00, 0x00, 0x00, 0x00, // state_index
-            0x02, // state_value len
-            0x00, 0xff, // state_value
+            0x02, // state value len
+            0x00, 0xff, // state value
             0x00, 0x00, 0x00, 0x01, // event processor count
             0x00, 0x00, 0x00, 0x01, // matcher count
+            0x00, 0x00, 0x00, 0x09, // matcher len
+            0x00, // matcher enum code
             0x00, 0x02, // EVENT_CODE_EXTRACTOR_CODE
             0x00, // extractor len
             0x00, 0x00, // VALUE_EQUAL_TO_CONST_FILTER_CODE
@@ -375,10 +342,12 @@ mod tests {
         let data = vec![
             0x00, 0x00, 0x00, 0x01, // initial state count
             0x00, 0x00, 0x00, 0x00, // state_index
-            0x02, // state_value len
-            0x00, 0xff, // state_value
+            0x02, // state value len
+            0x00, 0xff, // state value
             0x00, 0x00, 0x00, 0x01, // event processor count
             0x00, 0x00, 0x00, 0x01, // matcher count
+            0x00, 0x00, 0x00, 0x09, // matcher len
+            0x00, // matcher enum code
             0x00, 0x02, // EVENT_CODE_EXTRACTOR_CODE
             0x00, // extractor len
             0x00, 0x00, // VALUE_EQUAL_TO_CONST_FILTER_CODE
@@ -409,14 +378,14 @@ mod tests {
 
         let mut event_processors = vec![];
         event_processors.push(EventProcessor {
-            matchers: vec![Matcher {
+            matchers: vec![Matcher::Single {
                 extractor: Box::new(EventCodeExtractor::new()),
                 filter: Box::new(ValueEqualToConstFilter::new(Value::U8(0xff))),
             }],
             creators: vec![Creator {
                 extractor: Box::new(NoneExtractor::new()),
                 producer: Box::new(BcmChangeBrightnessStateProducer::new(0xabab, 0xff, 0)),
-                matcher: Some(Matcher {
+                matcher: Some(Matcher::Single {
                     extractor: Box::new(EventCodeExtractor::new()),
                     filter: Box::new(ValueEqualToConstFilter::new(Value::U8(0xff))),
                 }),
@@ -437,6 +406,8 @@ mod tests {
             0x00, 0xff, // state_value
             0x00, 0x00, 0x00, 0x01, // event processor count
             0x00, 0x00, 0x00, 0x01, // matcher count
+            0x00, 0x00, 0x00, 0x09, // matcher len
+            0x00, // matcher enum code
             0x00, 0x02, // EVENT_CODE_EXTRACTOR_CODE
             0x00, // extractor len
             0x00, 0x00, // VALUE_EQUAL_TO_CONST_FILTER_CODE
@@ -451,6 +422,8 @@ mod tests {
             0xff, // channel
             0x00, 0x00, 0x00, 0x00, // state_index
             0x01, // matcher count
+            0x00, 0x00, 0x00, 0x09, // matcher len
+            0x00, // matcher enum code
             0x00, 0x02, // EVENT_CODE_EXTRACTOR_CODE
             0x00, // extractor len
             0x00, 0x00, // VALUE_EQUAL_TO_CONST_FILTER_CODE
@@ -470,6 +443,8 @@ mod tests {
             0x00, 0xff, // state_value
             0x00, 0x00, 0x00, 0x01, // event processor count
             0x00, 0x00, 0x00, 0x01, // matcher count
+            0x00, 0x00, 0x00, 0x09, // matcher len
+            0x00, // matcher enum code
             0x00, 0x02, // EVENT_CODE_EXTRACTOR_CODE
             0x00, // extractor len
             0x00, 0x00, // VALUE_EQUAL_TO_CONST_FILTER_CODE
@@ -484,6 +459,8 @@ mod tests {
             0xff, // channel
             0x00, 0x00, 0x00, 0x00, // state_index
             0x01, // matcher count
+            0x00, 0x00, 0x00, 0x09, // matcher len
+            0x00, // matcher enum code
             0x00, 0x02, // EVENT_CODE_EXTRACTOR_CODE
             0x00, // extractor len
             0x00, 0x00, // VALUE_EQUAL_TO_CONST_FILTER_CODE
