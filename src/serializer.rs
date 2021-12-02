@@ -226,6 +226,9 @@ impl ConfigSerializer {
             SET_STATE_TO_CONST_FILTER_CODE => Ok(SetStateToConstFilter::try_deserialize(data)?),
             SET_STATE_TO_VALUE_FILTER_CODE => Ok(SetStateToValueFilter::try_deserialize(data)?),
             FLIP_STATE_FILTER_CODE => Ok(FlipStateFilter::try_deserialize(data)?),
+            TIME_MATCHES_CRON_EXPRESSION_FILTER_CODE => {
+                Ok(TimeMatchesCronExpressionFilter::try_deserialize(data)?)
+            }
             _ => Err(ConfigSerializerError::UnknownExtractor),
         }
     }
