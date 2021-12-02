@@ -1,3 +1,4 @@
+use chrono::DateTime;
 use core::fmt::Debug;
 use downcast_rs::{impl_downcast, Downcast};
 
@@ -35,6 +36,9 @@ pub use set_state_to_value::*;
 mod flip_state;
 pub use flip_state::*;
 
+mod time_matches_cron_expression;
+pub use time_matches_cron_expression::*;
+
 pub const VALUE_EQUAL_TO_CONST_FILTER_CODE: u16 = 0x0000;
 pub const STATE_EQUAL_TO_CONST_FILTER_CODE: u16 = 0x0001;
 pub const STATE_EQUAL_TO_VALUE_FILTER_CODE: u16 = 0x0002;
@@ -45,6 +49,7 @@ pub const DECREMENT_STATE_BY_VALUE_FILTER_CODE: u16 = 0x0006;
 pub const SET_STATE_TO_CONST_FILTER_CODE: u16 = 0x0007;
 pub const SET_STATE_TO_VALUE_FILTER_CODE: u16 = 0x0008;
 pub const FLIP_STATE_FILTER_CODE: u16 = 0x0009;
+pub const TIME_MATCHES_CRON_EXPRESSION_FILTER_CODE: u16 = 0x000a;
 
 #[derive(Debug, PartialEq)]
 pub enum FilterError {

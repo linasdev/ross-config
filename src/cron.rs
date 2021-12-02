@@ -22,7 +22,7 @@ impl<T: Copy + Ord + AddAssign> CronField<T> {
     fn do_match(&self, value: T) -> bool {
         match self {
             CronField::Including(values) => values.contains(&value),
-            CronField::Excluding(values) => values.contains(&value),
+            CronField::Excluding(values) => !values.contains(&value),
             CronField::EveryFromTo(every, from, to) => {
                 let mut current_value = *from;
 
@@ -230,17 +230,17 @@ impl TryDeserialize for CronField<u16> {
 
 #[derive(Debug, PartialEq)]
 pub struct CronExpression {
-    second: CronField<u8>,
-    minute: CronField<u8>,
-    hour: CronField<u8>,
-    day_month: CronField<u8>,
-    month: CronField<u8>,
-    day_week: CronField<u8>,
-    year: CronField<u16>,
+    pub second: CronField<u8>,
+    pub minute: CronField<u8>,
+    pub hour: CronField<u8>,
+    pub day_month: CronField<u8>,
+    pub month: CronField<u8>,
+    pub day_week: CronField<u8>,
+    pub year: CronField<u16>,
 }
 
 impl CronExpression {
-    fn do_match(&self, date_time: DateTime<Utc>) -> bool {
+    pub fn do_match(&self, date_time: &DateTime<Utc>) -> bool {
         if !self.second.do_match(date_time.second() as u8) {
             return false;
         }
@@ -253,17 +253,17 @@ impl CronExpression {
             return false;
         }
 
-        if !self.day_month.do_match(date_time.day0() as u8) {
+        if !self.day_month.do_match(date_time.day() as u8) {
             return false;
         }
 
-        if !self.month.do_match(date_time.month0() as u8) {
+        if !self.month.do_match(date_time.month() as u8) {
             return false;
         }
 
         if !self
             .day_week
-            .do_match(date_time.weekday().num_days_from_monday() as u8)
+            .do_match(date_time.weekday().number_from_monday() as u8)
         {
             return false;
         }
@@ -619,10 +619,10 @@ mod tests {
             Ok(Box::new(CronExpression {
                 second: CronField::Including(expected_included_values),
                 minute: CronField::Excluding(expected_excluded_values),
-                hour: CronField::EveryFromTo(1, 0, 59),
-                day_month: CronField::EveryFromTo(1, 0, 30),
-                month: CronField::EveryFromTo(1, 0, 11),
-                day_week: CronField::EveryFromTo(1, 0, 6),
+                hour: CronField::Any,
+                day_month: CronField::Any,
+                month: CronField::Any,
+                day_week: CronField::Any,
                 year: CronField::EveryFromTo(0x0123, 0xabab, 0xffff),
             }))
         );
