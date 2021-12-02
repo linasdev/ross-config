@@ -1,16 +1,16 @@
 extern crate alloc;
 
 use alloc::boxed::Box;
-use alloc::vec::Vec;
 use alloc::vec;
+use alloc::vec::Vec;
 
 use ross_protocol::packet::Packet;
 
-use crate::{serialize_integer_to_vec, try_deserialize_integer_from_vec};
 use crate::extractor::{Extractor, ExtractorError};
 use crate::filter::{Filter, FilterError};
+use crate::serializer::{ConfigSerializer, ConfigSerializerError, Serialize, TryDeserialize};
 use crate::state_manager::StateManager;
-use crate::serializer::{Serialize, TryDeserialize, ConfigSerializerError, ConfigSerializer};
+use crate::{serialize_integer_to_vec, try_deserialize_integer_from_vec};
 
 #[derive(Debug)]
 pub enum MatcherError {
@@ -58,7 +58,7 @@ impl Matcher {
 impl Serialize for Matcher {
     fn serialize(&self) -> Vec<u8> {
         match self {
-            Matcher::Single{extractor, filter} => {
+            Matcher::Single { extractor, filter } => {
                 let mut data = vec![0x00];
 
                 serialize_integer_to_vec!(data, extractor.get_code(), u16);
@@ -72,7 +72,7 @@ impl Serialize for Matcher {
                 data.append(&mut filter);
 
                 data
-            },
+            }
             Matcher::Not(matcher) => {
                 let mut data = vec![0x01];
 
@@ -81,7 +81,7 @@ impl Serialize for Matcher {
                 data.append(&mut matcher);
 
                 data
-            },
+            }
             Matcher::Or(matcher1, matcher2) => {
                 let mut data = vec![0x02];
 
@@ -94,7 +94,7 @@ impl Serialize for Matcher {
                 data.append(&mut matcher2);
 
                 data
-            },
+            }
             Matcher::And(matcher1, matcher2) => {
                 let mut data = vec![0x03];
 
@@ -136,14 +136,13 @@ impl TryDeserialize for Matcher {
 
                 let filter_code = try_deserialize_integer_from_vec!(data, offset, u16);
                 let filter_len = try_deserialize_integer_from_vec!(data, offset, u8) as usize;
-                let filter =
-                ConfigSerializer::try_deserialize_filter_from_vec(&data[offset..offset + filter_len], filter_code)?;
+                let filter = ConfigSerializer::try_deserialize_filter_from_vec(
+                    &data[offset..offset + filter_len],
+                    filter_code,
+                )?;
 
-                Ok(Box::new(Matcher::Single {
-                    extractor,
-                    filter,
-                }))
-            },
+                Ok(Box::new(Matcher::Single { extractor, filter }))
+            }
             0x01 => {
                 if data.len() < 5 {
                     return Err(ConfigSerializerError::WrongSize);

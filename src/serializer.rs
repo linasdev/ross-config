@@ -144,7 +144,9 @@ impl ConfigSerializer {
 
             for _ in 0..matcher_count {
                 let matcher_len = try_deserialize_integer_from_vec!(data, offset, u32) as usize;
-                matchers.push(*Matcher::try_deserialize(&data[offset..offset + matcher_len])?);
+                matchers.push(*Matcher::try_deserialize(
+                    &data[offset..offset + matcher_len],
+                )?);
                 offset += matcher_len;
             }
 
@@ -174,7 +176,9 @@ impl ConfigSerializer {
                 let matcher_count = try_deserialize_integer_from_vec!(data, offset, u8);
                 if matcher_count != 0 {
                     let matcher_len = try_deserialize_integer_from_vec!(data, offset, u32) as usize;
-                    matcher = Some(*Matcher::try_deserialize(&data[offset..offset + matcher_len])?);
+                    matcher = Some(*Matcher::try_deserialize(
+                        &data[offset..offset + matcher_len],
+                    )?);
                     offset += matcher_len;
                 }
 
