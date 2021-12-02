@@ -79,13 +79,9 @@ impl ConfigSerializer {
         serialize_integer_to_vec!(data, config.event_processors.len(), u32);
 
         for event_processor in config.event_processors.iter() {
-            serialize_integer_to_vec!(data, event_processor.matchers.len(), u32);
-
-            for matcher in event_processor.matchers.iter() {
-                let mut matcher = matcher.serialize();
-                serialize_integer_to_vec!(data, matcher.len() as u32, u32);
-                data.append(&mut matcher);
-            }
+            let mut matcher = event_processor.matcher.serialize();
+            serialize_integer_to_vec!(data, matcher.len() as u32, u32);
+            data.append(&mut matcher);
 
             serialize_integer_to_vec!(data, event_processor.creators.len(), u32);
 
@@ -100,8 +96,8 @@ impl ConfigSerializer {
                 serialize_integer_to_vec!(data, producer.len() as u8, u8);
                 data.append(&mut producer);
 
-                let matcher_count = if creator.matcher.is_some() { 1 } else { 0 };
-                serialize_integer_to_vec!(data, matcher_count, u8);
+                let matcher_exists = if creator.matcher.is_some() { 1 } else { 0 };
+                serialize_integer_to_vec!(data, matcher_exists, u8);
 
                 if let Some(matcher) = &creator.matcher {
                     let mut matcher = matcher.serialize();
@@ -137,18 +133,11 @@ impl ConfigSerializer {
         event_processors.reserve(event_processor_count as usize);
 
         for _ in 0..event_processor_count {
-            let matcher_count = try_deserialize_integer_from_vec!(data, offset, u32);
-
-            let mut matchers = vec![];
-            matchers.reserve(matcher_count as usize);
-
-            for _ in 0..matcher_count {
-                let matcher_len = try_deserialize_integer_from_vec!(data, offset, u32) as usize;
-                matchers.push(*Matcher::try_deserialize(
-                    &data[offset..offset + matcher_len],
-                )?);
-                offset += matcher_len;
-            }
+            let matcher_len = try_deserialize_integer_from_vec!(data, offset, u32) as usize;
+            let matcher = *Matcher::try_deserialize(
+                &data[offset..offset + matcher_len],
+            )?;
+            offset += matcher_len;
 
             let creator_count = try_deserialize_integer_from_vec!(data, offset, u32);
 
@@ -173,8 +162,8 @@ impl ConfigSerializer {
                 offset += producer_len;
 
                 let mut matcher = None;
-                let matcher_count = try_deserialize_integer_from_vec!(data, offset, u8);
-                if matcher_count != 0 {
+                let matcher_exists = try_deserialize_integer_from_vec!(data, offset, u8) != 0;
+                if matcher_exists {
                     let matcher_len = try_deserialize_integer_from_vec!(data, offset, u32) as usize;
                     matcher = Some(*Matcher::try_deserialize(
                         &data[offset..offset + matcher_len],
@@ -189,7 +178,7 @@ impl ConfigSerializer {
                 });
             }
 
-            event_processors.push(EventProcessor { matchers, creators });
+            event_processors.push(EventProcessor { matcher, creators });
         }
 
         Ok(Config {
@@ -273,10 +262,10 @@ mod tests {
 
         let mut event_processors = vec![];
         event_processors.push(EventProcessor {
-            matchers: vec![Matcher::Single {
+            matcher: Matcher::Single {
                 extractor: Box::new(EventCodeExtractor::new()),
                 filter: Box::new(ValueEqualToConstFilter::new(Value::U8(0xff))),
-            }],
+            },
             creators: vec![Creator {
                 extractor: Box::new(NoneExtractor::new()),
                 producer: Box::new(BcmChangeBrightnessStateProducer::new(0xabab, 0xff, 0)),
@@ -297,7 +286,6 @@ mod tests {
             0x02, // state value len
             0x00, 0xff, // state value
             0x00, 0x00, 0x00, 0x01, // event processor count
-            0x00, 0x00, 0x00, 0x01, // matcher count
             0x00, 0x00, 0x00, 0x09, // matcher len
             0x00, // matcher enum code
             0x00, 0x02, // EVENT_CODE_EXTRACTOR_CODE
@@ -313,7 +301,7 @@ mod tests {
             0xab, 0xab, // bcm_address
             0xff, // channel
             0x00, 0x00, 0x00, 0x00, // state_index
-            0x00, // matcher count
+            0x00, // matcher exists
         ];
 
         assert_eq!(data, expected_data);
@@ -349,7 +337,6 @@ mod tests {
             0x02, // state value len
             0x00, 0xff, // state value
             0x00, 0x00, 0x00, 0x01, // event processor count
-            0x00, 0x00, 0x00, 0x01, // matcher count
             0x00, 0x00, 0x00, 0x09, // matcher len
             0x00, // matcher enum code
             0x00, 0x02, // EVENT_CODE_EXTRACTOR_CODE
@@ -365,7 +352,7 @@ mod tests {
             0xab, 0xab, // bcm_address
             0xff, // channel
             0x00, 0x00, 0x00, 0x00, // state_index
-            0x00, // matcher count
+            0x00, // matcher exists
         ];
 
         let config = ConfigSerializer::deserialize(&data).unwrap();
@@ -382,10 +369,10 @@ mod tests {
 
         let mut event_processors = vec![];
         event_processors.push(EventProcessor {
-            matchers: vec![Matcher::Single {
+            matcher: Matcher::Single {
                 extractor: Box::new(EventCodeExtractor::new()),
                 filter: Box::new(ValueEqualToConstFilter::new(Value::U8(0xff))),
-            }],
+            },
             creators: vec![Creator {
                 extractor: Box::new(NoneExtractor::new()),
                 producer: Box::new(BcmChangeBrightnessStateProducer::new(0xabab, 0xff, 0)),
@@ -409,7 +396,6 @@ mod tests {
             0x02, // state_value len
             0x00, 0xff, // state_value
             0x00, 0x00, 0x00, 0x01, // event processor count
-            0x00, 0x00, 0x00, 0x01, // matcher count
             0x00, 0x00, 0x00, 0x09, // matcher len
             0x00, // matcher enum code
             0x00, 0x02, // EVENT_CODE_EXTRACTOR_CODE
@@ -425,7 +411,7 @@ mod tests {
             0xab, 0xab, // bcm_address
             0xff, // channel
             0x00, 0x00, 0x00, 0x00, // state_index
-            0x01, // matcher count
+            0x01, // matcher exists
             0x00, 0x00, 0x00, 0x09, // matcher len
             0x00, // matcher enum code
             0x00, 0x02, // EVENT_CODE_EXTRACTOR_CODE
@@ -446,7 +432,6 @@ mod tests {
             0x02, // state_value len
             0x00, 0xff, // state_value
             0x00, 0x00, 0x00, 0x01, // event processor count
-            0x00, 0x00, 0x00, 0x01, // matcher count
             0x00, 0x00, 0x00, 0x09, // matcher len
             0x00, // matcher enum code
             0x00, 0x02, // EVENT_CODE_EXTRACTOR_CODE
@@ -462,7 +447,7 @@ mod tests {
             0xab, 0xab, // bcm_address
             0xff, // channel
             0x00, 0x00, 0x00, 0x00, // state_index
-            0x01, // matcher count
+            0x01, // matcher exists
             0x00, 0x00, 0x00, 0x09, // matcher len
             0x00, // matcher enum code
             0x00, 0x02, // EVENT_CODE_EXTRACTOR_CODE

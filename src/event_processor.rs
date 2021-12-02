@@ -7,6 +7,6 @@ use crate::matcher::Matcher;
 
 #[derive(Debug)]
 pub struct EventProcessor {
-    pub matchers: Vec<Matcher>,
+    pub matcher: Matcher,
     pub creators: Vec<Creator>,
 }
