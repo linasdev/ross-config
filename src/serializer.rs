@@ -134,9 +134,7 @@ impl ConfigSerializer {
 
         for _ in 0..event_processor_count {
             let matcher_len = try_deserialize_integer_from_vec!(data, offset, u32) as usize;
-            let matcher = *Matcher::try_deserialize(
-                &data[offset..offset + matcher_len],
-            )?;
+            let matcher = *Matcher::try_deserialize(&data[offset..offset + matcher_len])?;
             offset += matcher_len;
 
             let creator_count = try_deserialize_integer_from_vec!(data, offset, u32);
