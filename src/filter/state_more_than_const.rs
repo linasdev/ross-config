@@ -32,7 +32,10 @@ impl Filter for StateMoreThanConstFilter {
         _value: &ExtractorValue,
         state_manager: &mut StateManager,
     ) -> Result<bool, FilterError> {
-        match (state_manager.get_value(self.state_index), &self.required_value) {
+        match (
+            state_manager.get_value(self.state_index),
+            &self.required_value,
+        ) {
             (Some(Value::U8(value)), Value::U8(required_value)) => Ok(value > required_value),
             (Some(Value::U16(value)), Value::U16(required_value)) => Ok(value > required_value),
             (Some(Value::U32(value)), Value::U32(required_value)) => Ok(value > required_value),
