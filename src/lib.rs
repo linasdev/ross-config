@@ -22,7 +22,7 @@ pub mod producer;
 pub mod serializer;
 pub mod state_manager;
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub enum Value {
     U8(u8),
     U16(u16),

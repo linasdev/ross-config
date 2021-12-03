@@ -229,6 +229,9 @@ impl ConfigSerializer {
             TIME_MATCHES_CRON_EXPRESSION_FILTER_CODE => {
                 Ok(TimeMatchesCronExpressionFilter::try_deserialize(data)?)
             }
+            STATE_MORE_THAN_CONST_FILTER_CODE => {
+                Ok(StateMoreThanConstFilter::try_deserialize(data)?)
+            }
             _ => Err(ConfigSerializerError::UnknownExtractor),
         }
     }

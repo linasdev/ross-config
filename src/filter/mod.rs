@@ -38,6 +38,9 @@ pub use flip_state::*;
 mod time_matches_cron_expression;
 pub use time_matches_cron_expression::*;
 
+mod state_more_than_const;
+pub use state_more_than_const::*;
+
 pub const VALUE_EQUAL_TO_CONST_FILTER_CODE: u16 = 0x0000;
 pub const STATE_EQUAL_TO_CONST_FILTER_CODE: u16 = 0x0001;
 pub const STATE_EQUAL_TO_VALUE_FILTER_CODE: u16 = 0x0002;
@@ -49,6 +52,7 @@ pub const SET_STATE_TO_CONST_FILTER_CODE: u16 = 0x0007;
 pub const SET_STATE_TO_VALUE_FILTER_CODE: u16 = 0x0008;
 pub const FLIP_STATE_FILTER_CODE: u16 = 0x0009;
 pub const TIME_MATCHES_CRON_EXPRESSION_FILTER_CODE: u16 = 0x000a;
+pub const STATE_MORE_THAN_CONST_FILTER_CODE: u16 = 0x000b;
 
 #[derive(Debug, PartialEq)]
 pub enum FilterError {
