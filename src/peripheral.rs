@@ -1,14 +1,14 @@
 extern crate alloc;
 
-use alloc::vec::Vec;
-use alloc::vec;
 use alloc::boxed::Box;
+use alloc::vec;
+use alloc::vec::Vec;
 
-use crate::serializer::{Serialize, TryDeserialize, ConfigSerializerError};
+use crate::serializer::{ConfigSerializerError, Serialize, TryDeserialize};
 
 #[derive(Debug, PartialEq)]
 pub enum Peripheral {
-    Bcm(BcmPeripheral)
+    Bcm(BcmPeripheral),
 }
 
 impl Serialize for Peripheral {
@@ -30,7 +30,9 @@ impl TryDeserialize for Peripheral {
         }
 
         match data[0] {
-            0x00 => Ok(Box::new(Peripheral::Bcm(*BcmPeripheral::try_deserialize(&data[1..])?))),
+            0x00 => Ok(Box::new(Peripheral::Bcm(*BcmPeripheral::try_deserialize(
+                &data[1..],
+            )?))),
             _ => Err(ConfigSerializerError::UnknownEnumVariant),
         }
     }
@@ -67,14 +69,16 @@ impl TryDeserialize for BcmPeripheral {
                 }
 
                 Ok(Box::new(BcmPeripheral::Rgb(data[1], data[2], data[3])))
-            },
+            }
             0x02 => {
                 if data.len() < 5 {
                     return Err(ConfigSerializerError::WrongSize);
                 }
 
-                Ok(Box::new(BcmPeripheral::Rgbw(data[1], data[2], data[3], data[4])))
-            },
+                Ok(Box::new(BcmPeripheral::Rgbw(
+                    data[1], data[2], data[3], data[4],
+                )))
+            }
             _ => Err(ConfigSerializerError::UnknownEnumVariant),
         }
     }

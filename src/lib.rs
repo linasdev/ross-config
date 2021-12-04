@@ -17,10 +17,10 @@ pub mod event_processor;
 pub mod extractor;
 pub mod filter;
 pub mod matcher;
+pub mod peripheral;
 pub mod producer;
 pub mod serializer;
 pub mod state_manager;
-pub mod peripheral;
 
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub enum Value {

@@ -3,8 +3,8 @@ extern crate alloc;
 use alloc::collections::BTreeMap;
 use alloc::vec::Vec;
 
-use crate::peripheral::Peripheral;
 use crate::event_processor::EventProcessor;
+use crate::peripheral::Peripheral;
 use crate::Value;
 
 #[derive(Debug)]

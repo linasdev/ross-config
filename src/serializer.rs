@@ -11,9 +11,9 @@ use crate::event_processor::EventProcessor;
 use crate::extractor::*;
 use crate::filter::*;
 use crate::matcher::Matcher;
+use crate::peripheral::Peripheral;
 use crate::producer::*;
 use crate::Value;
-use crate::peripheral::Peripheral;
 
 #[macro_export]
 macro_rules! try_deserialize_integer_from_vec {
@@ -126,8 +126,10 @@ impl ConfigSerializer {
         let mut peripherals = vec![];
 
         for _ in 0..peripheral_count {
-            let serialized_peripheral_len = try_deserialize_integer_from_vec!(data, offset, u8) as usize;
-            let peripheral = *Peripheral::try_deserialize(&data[offset..offset + serialized_peripheral_len])?;
+            let serialized_peripheral_len =
+                try_deserialize_integer_from_vec!(data, offset, u8) as usize;
+            let peripheral =
+                *Peripheral::try_deserialize(&data[offset..offset + serialized_peripheral_len])?;
             offset += serialized_peripheral_len;
 
             peripherals.push(peripheral);
@@ -397,7 +399,10 @@ mod tests {
         let config = ConfigSerializer::deserialize(&data).unwrap();
 
         assert_eq!(config.peripherals.len(), 1);
-        assert_eq!(config.peripherals[0], Peripheral::Bcm(BcmPeripheral::Rgbw(0x01, 0x23, 0x45, 0x67)));
+        assert_eq!(
+            config.peripherals[0],
+            Peripheral::Bcm(BcmPeripheral::Rgbw(0x01, 0x23, 0x45, 0x67))
+        );
         assert_eq!(config.initial_state.len(), 1);
         assert_eq!(*config.initial_state.get(&0).unwrap(), Value::U8(0xff));
         assert_eq!(config.event_processors.len(), 1);
@@ -511,7 +516,10 @@ mod tests {
         let config = ConfigSerializer::deserialize(&data).unwrap();
 
         assert_eq!(config.peripherals.len(), 1);
-        assert_eq!(config.peripherals[0], Peripheral::Bcm(BcmPeripheral::Rgbw(0x01, 0x23, 0x45, 0x67)));
+        assert_eq!(
+            config.peripherals[0],
+            Peripheral::Bcm(BcmPeripheral::Rgbw(0x01, 0x23, 0x45, 0x67))
+        );
         assert_eq!(config.initial_state.len(), 1);
         assert_eq!(*config.initial_state.get(&0).unwrap(), Value::U8(0xff));
         assert_eq!(config.event_processors.len(), 1);
