@@ -71,7 +71,8 @@ impl ConfigSerializer {
         serialize_integer_to_vec!(data, config.peripherals.len(), u32);
 
         for peripheral in config.peripherals.iter() {
-            let mut serialized_peripheral = peripheral.serialize();
+            serialize_integer_to_vec!(data, *peripheral.0, u32);
+            let mut serialized_peripheral = peripheral.1.serialize();
             serialize_integer_to_vec!(data, serialized_peripheral.len(), u8);
             data.append(&mut serialized_peripheral);
         }
@@ -123,16 +124,17 @@ impl ConfigSerializer {
         let mut offset = 0;
 
         let peripheral_count = try_deserialize_integer_from_vec!(data, offset, u32);
-        let mut peripherals = vec![];
+        let mut peripherals = BTreeMap::new();
 
         for _ in 0..peripheral_count {
+            let peripheral_index = try_deserialize_integer_from_vec!(data, offset, u32);
             let serialized_peripheral_len =
                 try_deserialize_integer_from_vec!(data, offset, u8) as usize;
             let peripheral =
                 *Peripheral::try_deserialize(&data[offset..offset + serialized_peripheral_len])?;
             offset += serialized_peripheral_len;
 
-            peripherals.push(peripheral);
+            peripherals.insert(peripheral_index, peripheral);
         }
 
         let initial_state_count = try_deserialize_integer_from_vec!(data, offset, u32);
@@ -286,8 +288,8 @@ mod tests {
 
     #[test]
     fn serialize_test() {
-        let mut peripherals = vec![];
-        peripherals.push(Peripheral::Bcm(BcmPeripheral::Rgbw(0x01, 0x23, 0x45, 0x67)));
+        let mut peripherals = BTreeMap::new();
+        peripherals.insert(0, Peripheral::Bcm(BcmPeripheral::Rgbw(0x01, 0x23, 0x45, 0x67)));
 
         let mut initial_state = BTreeMap::new();
         initial_state.insert(0, Value::U8(0xff));
@@ -315,10 +317,11 @@ mod tests {
 
         let expected_data = vec![
             0x00, 0x00, 0x00, 0x01, // peripheral count
+            0x00, 0x00, 0x00, 0x00, // peripheral index
             0x06, // peripheral len
             0x00, 0x02, 0x01, 0x23, 0x45, 0x67, // peripheral
             0x00, 0x00, 0x00, 0x01, // initial state count
-            0x00, 0x00, 0x00, 0x00, // state_index
+            0x00, 0x00, 0x00, 0x00, // state index
             0x02, // state value len
             0x00, 0xff, // state value
             0x00, 0x00, 0x00, 0x01, // event processor count
@@ -371,10 +374,11 @@ mod tests {
     fn deserialize_test() {
         let data = vec![
             0x00, 0x00, 0x00, 0x01, // peripheral count
+            0x00, 0x00, 0x00, 0x00, // peripheral index
             0x06, // peripheral len
             0x00, 0x02, 0x01, 0x23, 0x45, 0x67, // peripheral
             0x00, 0x00, 0x00, 0x01, // initial state count
-            0x00, 0x00, 0x00, 0x00, // state_index
+            0x00, 0x00, 0x00, 0x00, // state index
             0x02, // state value len
             0x00, 0xff, // state value
             0x00, 0x00, 0x00, 0x01, // event processor count
@@ -400,7 +404,7 @@ mod tests {
 
         assert_eq!(config.peripherals.len(), 1);
         assert_eq!(
-            config.peripherals[0],
+            *config.peripherals.get(&0).unwrap(),
             Peripheral::Bcm(BcmPeripheral::Rgbw(0x01, 0x23, 0x45, 0x67))
         );
         assert_eq!(config.initial_state.len(), 1);
@@ -410,8 +414,8 @@ mod tests {
 
     #[test]
     fn if_match_serialize_test() {
-        let mut peripherals = vec![];
-        peripherals.push(Peripheral::Bcm(BcmPeripheral::Rgbw(0x01, 0x23, 0x45, 0x67)));
+        let mut peripherals = BTreeMap::new();
+        peripherals.insert(0, Peripheral::Bcm(BcmPeripheral::Rgbw(0x01, 0x23, 0x45, 0x67)));
 
         let mut initial_state = BTreeMap::new();
         initial_state.insert(0, Value::U8(0xff));
@@ -442,10 +446,11 @@ mod tests {
 
         let expected_data = vec![
             0x00, 0x00, 0x00, 0x01, // peripheral count
+            0x00, 0x00, 0x00, 0x00, // peripheral index
             0x06, // peripheral len
             0x00, 0x02, 0x01, 0x23, 0x45, 0x67, // peripheral
             0x00, 0x00, 0x00, 0x01, // initial state count
-            0x00, 0x00, 0x00, 0x00, // state_index
+            0x00, 0x00, 0x00, 0x00, // state index
             0x02, // state_value len
             0x00, 0xff, // state_value
             0x00, 0x00, 0x00, 0x01, // event processor count
@@ -481,10 +486,11 @@ mod tests {
     fn if_match_deserialize_test() {
         let data = vec![
             0x00, 0x00, 0x00, 0x01, // peripheral count
+            0x00, 0x00, 0x00, 0x00, // peripheral index
             0x06, // peripheral len
             0x00, 0x02, 0x01, 0x23, 0x45, 0x67, // peripheral
             0x00, 0x00, 0x00, 0x01, // initial state count
-            0x00, 0x00, 0x00, 0x00, // state_index
+            0x00, 0x00, 0x00, 0x00, // state index
             0x02, // state_value len
             0x00, 0xff, // state_value
             0x00, 0x00, 0x00, 0x01, // event processor count
@@ -517,7 +523,7 @@ mod tests {
 
         assert_eq!(config.peripherals.len(), 1);
         assert_eq!(
-            config.peripherals[0],
+            *config.peripherals.get(&0).unwrap(),
             Peripheral::Bcm(BcmPeripheral::Rgbw(0x01, 0x23, 0x45, 0x67))
         );
         assert_eq!(config.initial_state.len(), 1);
