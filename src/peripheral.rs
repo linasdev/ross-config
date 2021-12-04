@@ -6,7 +6,7 @@ use alloc::vec::Vec;
 
 use crate::serializer::{ConfigSerializerError, Serialize, TryDeserialize};
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Copy, Clone, PartialEq)]
 pub enum Peripheral {
     Bcm(BcmPeripheral),
 }
@@ -38,7 +38,7 @@ impl TryDeserialize for Peripheral {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Copy, Clone, PartialEq)]
 pub enum BcmPeripheral {
     Single(u8),
     Rgb(u8, u8, u8),
