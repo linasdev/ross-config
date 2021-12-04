@@ -289,7 +289,10 @@ mod tests {
     #[test]
     fn serialize_test() {
         let mut peripherals = BTreeMap::new();
-        peripherals.insert(0, Peripheral::Bcm(BcmPeripheral::Rgbw(0x01, 0x23, 0x45, 0x67)));
+        peripherals.insert(
+            0,
+            Peripheral::Bcm(BcmPeripheral::Rgbw(0x01, 0x23, 0x45, 0x67)),
+        );
 
         let mut initial_state = BTreeMap::new();
         initial_state.insert(0, Value::U8(0xff));
@@ -415,7 +418,10 @@ mod tests {
     #[test]
     fn if_match_serialize_test() {
         let mut peripherals = BTreeMap::new();
-        peripherals.insert(0, Peripheral::Bcm(BcmPeripheral::Rgbw(0x01, 0x23, 0x45, 0x67)));
+        peripherals.insert(
+            0,
+            Peripheral::Bcm(BcmPeripheral::Rgbw(0x01, 0x23, 0x45, 0x67)),
+        );
 
         let mut initial_state = BTreeMap::new();
         initial_state.insert(0, Value::U8(0xff));
