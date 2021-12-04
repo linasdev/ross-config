@@ -20,6 +20,7 @@ pub mod matcher;
 pub mod producer;
 pub mod serializer;
 pub mod state_manager;
+pub mod peripheral;
 
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub enum Value {
