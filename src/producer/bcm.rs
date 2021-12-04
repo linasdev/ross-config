@@ -7,8 +7,8 @@ use core::convert::TryInto;
 
 use ross_protocol::convert_packet::ConvertPacket;
 use ross_protocol::event::bcm::BcmChangeBrightnessEvent;
-use ross_protocol::packet::Packet;
 use ross_protocol::event::bcm::BcmValue;
+use ross_protocol::packet::Packet;
 
 use crate::producer::{
     Producer, ProducerError, BCM_CHANGE_BRIGHTNESS_PRODUCER_CODE,
@@ -196,14 +196,14 @@ impl TryDeserialize for BcmValue {
                 }
 
                 Ok(Box::new(BcmValue::Rgb(data[1], data[2], data[3])))
-            },
+            }
             0x02 => {
                 if data.len() < 5 {
                     return Err(ConfigSerializerError::WrongSize);
                 }
 
                 Ok(Box::new(BcmValue::Rgbw(data[1], data[2], data[3], data[4])))
-            },
+            }
             _ => Err(ConfigSerializerError::UnknownEnumVariant),
         }
     }
@@ -247,7 +247,11 @@ mod tests {
 
         let state_manager = StateManager::new();
 
-        let producer = BcmChangeBrightnessProducer::new(PACKET.device_address, 0x01, BcmValue::Rgb(0x23, 0x45, 0x67));
+        let producer = BcmChangeBrightnessProducer::new(
+            PACKET.device_address,
+            0x01,
+            BcmValue::Rgb(0x23, 0x45, 0x67),
+        );
 
         assert_eq!(
             producer.produce(ExtractorValue::None, &state_manager, 0x0000),
@@ -257,7 +261,8 @@ mod tests {
 
     #[test]
     fn change_brightness_serialize_test() {
-        let producer = BcmChangeBrightnessProducer::new(0xabab, 0x01, BcmValue::Rgb(0x23, 0x45, 0x67));
+        let producer =
+            BcmChangeBrightnessProducer::new(0xabab, 0x01, BcmValue::Rgb(0x23, 0x45, 0x67));
 
         let expected_data = vec![0xab, 0xab, 0x01, 0x01, 0x23, 0x45, 0x67];
 
@@ -268,7 +273,8 @@ mod tests {
     fn change_brightness_deserialize_test() {
         let data = vec![0xab, 0xab, 0x01, 0x01, 0x23, 0x45, 0x67];
 
-        let producer = BcmChangeBrightnessProducer::new(0xabab, 0x01, BcmValue::Rgb(0x23, 0x45, 0x67));
+        let producer =
+            BcmChangeBrightnessProducer::new(0xabab, 0x01, BcmValue::Rgb(0x23, 0x45, 0x67));
 
         assert_eq!(
             BcmChangeBrightnessProducer::try_deserialize(&data),

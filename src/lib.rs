@@ -94,7 +94,7 @@ impl TryDeserialize for Value {
                 if data.len() < 5 {
                     return Err(ConfigSerializerError::WrongSize);
                 }
-                
+
                 Ok(Box::new(Value::Rgbw(data[1], data[2], data[3], data[4])))
             }
             _ => Err(ConfigSerializerError::UnknownEnumVariant),
