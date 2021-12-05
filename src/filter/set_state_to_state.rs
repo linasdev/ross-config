@@ -118,10 +118,7 @@ mod tests {
     fn deserialize_test() {
         let data = vec![0xab, 0xab, 0xab, 0xab, 0xff, 0xff, 0xff, 0xff];
 
-        let filter = Box::new(SetStateToStateFilter::new(
-            0xabab_abab,
-            0xffff_ffff,
-        ));
+        let filter = Box::new(SetStateToStateFilter::new(0xabab_abab, 0xffff_ffff));
 
         assert_eq!(SetStateToStateFilter::try_deserialize(&data), Ok(filter));
     }
