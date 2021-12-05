@@ -261,6 +261,7 @@ impl ConfigSerializer {
                 Ok(StateLessThatConstFilter::try_deserialize(data)?)
             }
             SET_STATE_TO_STATE_FILTER_CODE => Ok(SetStateToStateFilter::try_deserialize(data)?),
+            STATE_EQUAL_TO_STATE_FILTER_CODE => Ok(StateEqualToStateFilter::try_deserialize(data)?),
             _ => Err(ConfigSerializerError::UnknownExtractor),
         }
     }

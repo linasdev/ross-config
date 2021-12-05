@@ -47,6 +47,9 @@ pub use state_less_than_const::*;
 mod set_state_to_state;
 pub use set_state_to_state::*;
 
+mod state_equal_to_state;
+pub use state_equal_to_state::*;
+
 pub const VALUE_EQUAL_TO_CONST_FILTER_CODE: u16 = 0x0000;
 pub const STATE_EQUAL_TO_CONST_FILTER_CODE: u16 = 0x0001;
 pub const STATE_EQUAL_TO_VALUE_FILTER_CODE: u16 = 0x0002;
@@ -61,6 +64,7 @@ pub const TIME_MATCHES_CRON_EXPRESSION_FILTER_CODE: u16 = 0x000a;
 pub const STATE_MORE_THAN_CONST_FILTER_CODE: u16 = 0x000b;
 pub const STATE_LESS_THAN_CONST_FILTER_CODE: u16 = 0x000c;
 pub const SET_STATE_TO_STATE_FILTER_CODE: u16 = 0x000d;
+pub const STATE_EQUAL_TO_STATE_FILTER_CODE: u16 = 0x000e;
 
 #[derive(Debug, PartialEq)]
 pub enum FilterError {
