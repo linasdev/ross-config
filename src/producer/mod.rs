@@ -19,6 +19,9 @@ pub use message::*;
 mod bcm;
 pub use bcm::*;
 
+mod relay;
+pub use relay::*;
+
 pub const NONE_PRODUCER_CODE: u16 = 0x0000;
 pub const PACKET_PRODUCER_CODE: u16 = 0x0001;
 pub const MESSAGE_PRODUCER_CODE: u16 = 0x0002;
@@ -26,6 +29,9 @@ pub const BCM_CHANGE_BRIGHTNESS_PRODUCER_CODE: u16 = 0x0003;
 pub const BCM_CHANGE_BRIGHTNESS_STATE_PRODUCER_CODE: u16 = 0x0004;
 pub const BCM_ANIMATE_BRIGHTNESS_PRODUCER_CODE: u16 = 0x0005;
 pub const BCM_ANIMATE_BRIGHTNESS_STATE_PRODUCER_CODE: u16 = 0x0006;
+pub const RELAY_SET_STATE_PRODUCER_CODE: u16 = 0x0007;
+pub const RELAY_SET_STATE_STATE_PRODUCER_CODE: u16 = 0x0008;
+pub const RELAY_FLIP_STATE_PRODUCER_CODE: u16 = 0x0009;
 
 #[derive(Debug, PartialEq)]
 pub enum ProducerError {
