@@ -19,7 +19,10 @@ pub struct StateEqualToStateFilter {
 
 impl StateEqualToStateFilter {
     pub fn new(state_index: u32, target_state_index: u32) -> Self {
-        Self { state_index, target_state_index }
+        Self {
+            state_index,
+            target_state_index,
+        }
     }
 }
 
@@ -72,7 +75,10 @@ impl TryDeserialize for StateEqualToStateFilter {
         let state_index = u32::from_be_bytes(data[0..=3].try_into().unwrap());
         let target_state_index = u32::from_be_bytes(data[4..=7].try_into().unwrap());
 
-        Ok(Box::new(Self { state_index, target_state_index }))
+        Ok(Box::new(Self {
+            state_index,
+            target_state_index,
+        }))
     }
 }
 
