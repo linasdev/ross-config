@@ -278,6 +278,9 @@ impl ConfigSerializer {
             BCM_ANIMATE_BRIGHTNESS_PRODUCER_CODE => {
                 Ok(BcmAnimateBrightnessProducer::try_deserialize(data)?)
             }
+            BCM_ANIMATE_BRIGHTNESS_STATE_PRODUCER_CODE => {
+                Ok(BcmAnimateBrightnessStateProducer::try_deserialize(data)?)
+            }
             _ => Err(ConfigSerializerError::UnknownProducer),
         }
     }

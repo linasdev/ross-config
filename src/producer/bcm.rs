@@ -12,7 +12,8 @@ use ross_protocol::packet::Packet;
 
 use crate::producer::{
     Producer, ProducerError, BCM_ANIMATE_BRIGHTNESS_PRODUCER_CODE,
-    BCM_CHANGE_BRIGHTNESS_PRODUCER_CODE, BCM_CHANGE_BRIGHTNESS_STATE_PRODUCER_CODE,
+    BCM_ANIMATE_BRIGHTNESS_STATE_PRODUCER_CODE, BCM_CHANGE_BRIGHTNESS_PRODUCER_CODE,
+    BCM_CHANGE_BRIGHTNESS_STATE_PRODUCER_CODE,
 };
 use crate::serializer::{ConfigSerializerError, Serialize, TryDeserialize};
 use crate::state_manager::StateManager;
@@ -172,43 +173,6 @@ impl TryDeserialize for BcmChangeBrightnessStateProducer {
     }
 }
 
-impl Serialize for BcmValue {
-    fn serialize(&self) -> Vec<u8> {
-        match *self {
-            BcmValue::Single(value) => vec![0x00, value],
-            BcmValue::Rgb(r, g, b) => vec![0x01, r, g, b],
-            BcmValue::Rgbw(r, g, b, w) => vec![0x02, r, g, b, w],
-        }
-    }
-}
-
-impl TryDeserialize for BcmValue {
-    fn try_deserialize(data: &[u8]) -> Result<Box<Self>, ConfigSerializerError> {
-        if data.len() < 2 {
-            return Err(ConfigSerializerError::WrongSize);
-        }
-
-        match data[0] {
-            0x00 => Ok(Box::new(BcmValue::Single(data[1]))),
-            0x01 => {
-                if data.len() < 4 {
-                    return Err(ConfigSerializerError::WrongSize);
-                }
-
-                Ok(Box::new(BcmValue::Rgb(data[1], data[2], data[3])))
-            }
-            0x02 => {
-                if data.len() < 5 {
-                    return Err(ConfigSerializerError::WrongSize);
-                }
-
-                Ok(Box::new(BcmValue::Rgbw(data[1], data[2], data[3], data[4])))
-            }
-            _ => Err(ConfigSerializerError::UnknownEnumVariant),
-        }
-    }
-}
-
 #[repr(C)]
 #[derive(Debug, PartialEq)]
 pub struct BcmAnimateBrightnessProducer {
@@ -292,6 +256,135 @@ impl TryDeserialize for BcmAnimateBrightnessProducer {
             duration,
             target_value,
         }))
+    }
+}
+
+#[repr(C)]
+#[derive(Debug, PartialEq)]
+pub struct BcmAnimateBrightnessStateProducer {
+    bcm_address: u16,
+    index: u8,
+    duration: u32,
+    state_index: u32,
+}
+
+impl BcmAnimateBrightnessStateProducer {
+    pub fn new(bcm_address: u16, index: u8, duration: u32, state_index: u32) -> Self {
+        Self {
+            bcm_address,
+            index,
+            duration,
+            state_index,
+        }
+    }
+}
+
+impl Producer for BcmAnimateBrightnessStateProducer {
+    fn produce(
+        &self,
+        _value: ExtractorValue,
+        state_manager: &StateManager,
+        device_address: u16,
+    ) -> Result<Option<Packet>, ProducerError> {
+        let current_value = match state_manager.get_value(self.state_index) {
+            Some(Value::U8(value)) => BcmValue::Single(*value),
+            Some(Value::Rgb(r, g, b)) => BcmValue::Rgb(*r, *g, *b),
+            Some(Value::Rgbw(r, g, b, w)) => BcmValue::Rgbw(*r, *g, *b, *w),
+            _ => return Err(ProducerError::WrongStateType),
+        };
+
+        let event = BcmAnimateBrightnessEvent {
+            bcm_address: self.bcm_address,
+            transmitter_address: device_address,
+            index: self.index,
+            duration: self.duration,
+            target_value: current_value,
+        };
+
+        Ok(Some(event.to_packet()))
+    }
+
+    fn get_code(&self) -> u16 {
+        BCM_ANIMATE_BRIGHTNESS_STATE_PRODUCER_CODE
+    }
+}
+
+impl Serialize for BcmAnimateBrightnessStateProducer {
+    fn serialize(&self) -> Vec<u8> {
+        let bcm_address = self.bcm_address.to_be_bytes();
+        let duration = self.duration.to_be_bytes();
+        let state_index = self.state_index.to_be_bytes();
+
+        vec![
+            bcm_address[0],
+            bcm_address[1],
+            self.index,
+            duration[0],
+            duration[1],
+            duration[2],
+            duration[3],
+            state_index[0],
+            state_index[1],
+            state_index[2],
+            state_index[3],
+        ]
+    }
+}
+
+impl TryDeserialize for BcmAnimateBrightnessStateProducer {
+    fn try_deserialize(data: &[u8]) -> Result<Box<Self>, ConfigSerializerError> {
+        if data.len() < 11 {
+            return Err(ConfigSerializerError::WrongSize);
+        }
+
+        let bcm_address = u16::from_be_bytes(data[0..=1].try_into().unwrap());
+        let index = data[2];
+        let duration = u32::from_be_bytes(data[3..=6].try_into().unwrap());
+        let state_index = u32::from_be_bytes(data[7..=10].try_into().unwrap());
+
+        Ok(Box::new(Self {
+            bcm_address,
+            index,
+            duration,
+            state_index,
+        }))
+    }
+}
+
+impl Serialize for BcmValue {
+    fn serialize(&self) -> Vec<u8> {
+        match *self {
+            BcmValue::Single(value) => vec![0x00, value],
+            BcmValue::Rgb(r, g, b) => vec![0x01, r, g, b],
+            BcmValue::Rgbw(r, g, b, w) => vec![0x02, r, g, b, w],
+        }
+    }
+}
+
+impl TryDeserialize for BcmValue {
+    fn try_deserialize(data: &[u8]) -> Result<Box<Self>, ConfigSerializerError> {
+        if data.len() < 2 {
+            return Err(ConfigSerializerError::WrongSize);
+        }
+
+        match data[0] {
+            0x00 => Ok(Box::new(BcmValue::Single(data[1]))),
+            0x01 => {
+                if data.len() < 4 {
+                    return Err(ConfigSerializerError::WrongSize);
+                }
+
+                Ok(Box::new(BcmValue::Rgb(data[1], data[2], data[3])))
+            }
+            0x02 => {
+                if data.len() < 5 {
+                    return Err(ConfigSerializerError::WrongSize);
+                }
+
+                Ok(Box::new(BcmValue::Rgbw(data[1], data[2], data[3], data[4])))
+            }
+            _ => Err(ConfigSerializerError::UnknownEnumVariant),
+        }
     }
 }
 
@@ -446,60 +539,6 @@ mod tests {
     }
 
     #[test]
-    fn bcm_value_single_serialize_test() {
-        let value = BcmValue::Single(0xab);
-
-        let expected_data = vec![0x00, 0xab];
-
-        assert_eq!(value.serialize(), expected_data);
-    }
-
-    #[test]
-    fn bcm_value_single_deserialize_test() {
-        let data = vec![0x00, 0xab];
-
-        let expected_value = Box::new(BcmValue::Single(0xab));
-
-        assert_eq!(BcmValue::try_deserialize(&data), Ok(expected_value));
-    }
-
-    #[test]
-    fn bcm_value_rgb_serialize_test() {
-        let value = BcmValue::Rgb(0xab, 0xab, 0xab);
-
-        let expected_data = vec![0x01, 0xab, 0xab, 0xab];
-
-        assert_eq!(value.serialize(), expected_data);
-    }
-
-    #[test]
-    fn bcm_value_rgb_deserialize_test() {
-        let data = vec![0x01, 0xab, 0xab, 0xab];
-
-        let expected_value = Box::new(BcmValue::Rgb(0xab, 0xab, 0xab));
-
-        assert_eq!(BcmValue::try_deserialize(&data), Ok(expected_value));
-    }
-
-    #[test]
-    fn bcm_value_rgbw_serialize_test() {
-        let value = BcmValue::Rgbw(0xab, 0xab, 0xab, 0xab);
-
-        let expected_data = vec![0x02, 0xab, 0xab, 0xab, 0xab];
-
-        assert_eq!(value.serialize(), expected_data);
-    }
-
-    #[test]
-    fn bcm_value_rgbw_deserialize_test() {
-        let data = vec![0x02, 0xab, 0xab, 0xab, 0xab];
-
-        let expected_value = Box::new(BcmValue::Rgbw(0xab, 0xab, 0xab, 0xab));
-
-        assert_eq!(BcmValue::try_deserialize(&data), Ok(expected_value));
-    }
-
-    #[test]
     fn animate_brightness_test() {
         let mut packet = PACKET;
         packet.data = vec![
@@ -580,5 +619,134 @@ mod tests {
             BcmAnimateBrightnessProducer::try_deserialize(&data),
             Err(ConfigSerializerError::WrongSize)
         );
+    }
+
+    #[test]
+    fn animate_brightness_state_test() {
+        let mut packet = PACKET;
+        packet.data = vec![
+            ((BCM_ANIMATE_BRIGHTNESS_EVENT_CODE >> 8) & 0xff) as u8, // event code
+            ((BCM_ANIMATE_BRIGHTNESS_EVENT_CODE >> 0) & 0xff) as u8, // event code
+            0x00,                                                    // transmitter address
+            0x00,                                                    // transmitter address
+            0x01,                                                    // index
+            0xab,                                                    // duration
+            0xab,                                                    // duration
+            0xab,                                                    // duration
+            0xab,                                                    // duration
+            0x01,                                                    // target value
+            0x00,                                                    // target value
+            0x00,                                                    // target value
+            0x00,                                                    // target value
+            0x23,                                                    // target value
+            0x45,                                                    // target value
+            0x67,                                                    // target value
+            0x00,                                                    // target value
+        ];
+
+        let mut state_manager = StateManager::new();
+        state_manager.set_value(0, Value::Rgb(0x23, 0x45, 0x67));
+
+        let producer = BcmAnimateBrightnessStateProducer::new(0xabab, 0x01, 0xabab_abab, 0);
+
+        assert_eq!(
+            producer.produce(ExtractorValue::None, &state_manager, 0x0000),
+            Ok(Some(packet))
+        );
+    }
+
+    #[test]
+    fn animate_brightness_state_serialize_test() {
+        let producer =
+            BcmAnimateBrightnessStateProducer::new(0xabab, 0x01, 0xabab_abab, 0xffff_ffff);
+
+        let expected_data = vec![
+            0xab, 0xab, 0x01, 0xab, 0xab, 0xab, 0xab, 0xff, 0xff, 0xff, 0xff,
+        ];
+
+        assert_eq!(producer.serialize(), expected_data);
+    }
+
+    #[test]
+    fn animate_brightness_state_deserialize_test() {
+        let data = vec![
+            0xab, 0xab, 0x01, 0xab, 0xab, 0xab, 0xab, 0xff, 0xff, 0xff, 0xff,
+        ];
+
+        let producer = Box::new(BcmAnimateBrightnessStateProducer::new(
+            0xabab,
+            0x01,
+            0xabab_abab,
+            0xffff_ffff,
+        ));
+
+        assert_eq!(
+            BcmAnimateBrightnessStateProducer::try_deserialize(&data),
+            Ok(producer)
+        );
+    }
+
+    #[test]
+    fn animate_brightness_state_deserialize_wrong_size_test() {
+        let data = vec![0xab, 0xab, 0x01, 0xff, 0xff, 0xff];
+
+        assert_eq!(
+            BcmAnimateBrightnessStateProducer::try_deserialize(&data),
+            Err(ConfigSerializerError::WrongSize)
+        );
+    }
+
+    #[test]
+    fn bcm_value_single_serialize_test() {
+        let value = BcmValue::Single(0xab);
+
+        let expected_data = vec![0x00, 0xab];
+
+        assert_eq!(value.serialize(), expected_data);
+    }
+
+    #[test]
+    fn bcm_value_single_deserialize_test() {
+        let data = vec![0x00, 0xab];
+
+        let expected_value = Box::new(BcmValue::Single(0xab));
+
+        assert_eq!(BcmValue::try_deserialize(&data), Ok(expected_value));
+    }
+
+    #[test]
+    fn bcm_value_rgb_serialize_test() {
+        let value = BcmValue::Rgb(0xab, 0xab, 0xab);
+
+        let expected_data = vec![0x01, 0xab, 0xab, 0xab];
+
+        assert_eq!(value.serialize(), expected_data);
+    }
+
+    #[test]
+    fn bcm_value_rgb_deserialize_test() {
+        let data = vec![0x01, 0xab, 0xab, 0xab];
+
+        let expected_value = Box::new(BcmValue::Rgb(0xab, 0xab, 0xab));
+
+        assert_eq!(BcmValue::try_deserialize(&data), Ok(expected_value));
+    }
+
+    #[test]
+    fn bcm_value_rgbw_serialize_test() {
+        let value = BcmValue::Rgbw(0xab, 0xab, 0xab, 0xab);
+
+        let expected_data = vec![0x02, 0xab, 0xab, 0xab, 0xab];
+
+        assert_eq!(value.serialize(), expected_data);
+    }
+
+    #[test]
+    fn bcm_value_rgbw_deserialize_test() {
+        let data = vec![0x02, 0xab, 0xab, 0xab, 0xab];
+
+        let expected_value = Box::new(BcmValue::Rgbw(0xab, 0xab, 0xab, 0xab));
+
+        assert_eq!(BcmValue::try_deserialize(&data), Ok(expected_value));
     }
 }
