@@ -19,7 +19,7 @@ impl Serialize for Peripheral {
                 let mut data = vec![0x00];
                 data.append(&mut peripheral.serialize());
                 data
-            },
+            }
             Peripheral::Relay(peripheral) => {
                 let mut data = vec![0x01];
                 data.append(&mut peripheral.serialize());
@@ -39,9 +39,9 @@ impl TryDeserialize for Peripheral {
             0x00 => Ok(Box::new(Peripheral::Bcm(*BcmPeripheral::try_deserialize(
                 &data[1..],
             )?))),
-            0x01 => Ok(Box::new(Peripheral::Relay(*RelayPeripheral::try_deserialize(
-                &data[1..],
-            )?))),
+            0x01 => Ok(Box::new(Peripheral::Relay(
+                *RelayPeripheral::try_deserialize(&data[1..])?,
+            ))),
             _ => Err(ConfigSerializerError::UnknownEnumVariant),
         }
     }
@@ -163,7 +163,9 @@ mod tests {
     fn relay_deserialize_test() {
         let data = vec![0x01, 0x01, 0xab, 0x00];
 
-        let expected_value = Box::new(Peripheral::Relay(RelayPeripheral::DoubleExclusive(0xab, 0x00)));
+        let expected_value = Box::new(Peripheral::Relay(RelayPeripheral::DoubleExclusive(
+            0xab, 0x00,
+        )));
 
         assert_eq!(Peripheral::try_deserialize(&data), Ok(expected_value));
     }
