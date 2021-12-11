@@ -286,11 +286,7 @@ impl ConfigSerializer {
             BCM_ANIMATE_BRIGHTNESS_STATE_PRODUCER_CODE => {
                 Ok(BcmAnimateBrightnessStateProducer::try_deserialize(data)?)
             }
-            RELAY_SET_STATE_PRODUCER_CODE => Ok(RelaySetStateProducer::try_deserialize(data)?),
-            RELAY_SET_STATE_STATE_PRODUCER_CODE => {
-                Ok(RelaySetStateStateProducer::try_deserialize(data)?)
-            }
-            RELAY_FLIP_STATE_PRODUCER_CODE => Ok(RelayFlipStateProducer::try_deserialize(data)?),
+            RELAY_SET_VALUE_PRODUCER_CODE => Ok(RelaySetValueProducer::try_deserialize(data)?),
             _ => Err(ConfigSerializerError::UnknownProducer),
         }
     }
