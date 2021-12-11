@@ -9,6 +9,7 @@ use crate::serializer::{ConfigSerializerError, Serialize, TryDeserialize};
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub enum Peripheral {
     Bcm(BcmPeripheral),
+    Relay(RelayPeripheral),
 }
 
 impl Serialize for Peripheral {
@@ -16,6 +17,11 @@ impl Serialize for Peripheral {
         match self {
             Peripheral::Bcm(peripheral) => {
                 let mut data = vec![0x00];
+                data.append(&mut peripheral.serialize());
+                data
+            },
+            Peripheral::Relay(peripheral) => {
+                let mut data = vec![0x01];
                 data.append(&mut peripheral.serialize());
                 data
             }
@@ -31,6 +37,9 @@ impl TryDeserialize for Peripheral {
 
         match data[0] {
             0x00 => Ok(Box::new(Peripheral::Bcm(*BcmPeripheral::try_deserialize(
+                &data[1..],
+            )?))),
+            0x01 => Ok(Box::new(Peripheral::Relay(*RelayPeripheral::try_deserialize(
                 &data[1..],
             )?))),
             _ => Err(ConfigSerializerError::UnknownEnumVariant),
@@ -84,6 +93,41 @@ impl TryDeserialize for BcmPeripheral {
     }
 }
 
+#[derive(Debug, Copy, Clone, PartialEq)]
+pub enum RelayPeripheral {
+    Single(u8),
+    DoubleExclusive(u8, u8),
+}
+
+impl Serialize for RelayPeripheral {
+    fn serialize(&self) -> Vec<u8> {
+        match *self {
+            RelayPeripheral::Single(channel) => vec![0x00, channel],
+            RelayPeripheral::DoubleExclusive(channel1, channel2) => vec![0x01, channel1, channel2],
+        }
+    }
+}
+
+impl TryDeserialize for RelayPeripheral {
+    fn try_deserialize(data: &[u8]) -> Result<Box<Self>, ConfigSerializerError> {
+        if data.len() < 2 {
+            return Err(ConfigSerializerError::WrongSize);
+        }
+
+        match data[0] {
+            0x00 => Ok(Box::new(RelayPeripheral::Single(data[1]))),
+            0x01 => {
+                if data.len() < 3 {
+                    return Err(ConfigSerializerError::WrongSize);
+                }
+
+                Ok(Box::new(RelayPeripheral::DoubleExclusive(data[1], data[2])))
+            }
+            _ => Err(ConfigSerializerError::UnknownEnumVariant),
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -102,6 +146,24 @@ mod tests {
         let data = vec![0x00, 0x01, 0xab, 0x00, 0x01];
 
         let expected_value = Box::new(Peripheral::Bcm(BcmPeripheral::Rgb(0xab, 0x00, 0x01)));
+
+        assert_eq!(Peripheral::try_deserialize(&data), Ok(expected_value));
+    }
+
+    #[test]
+    fn relay_serialize_test() {
+        let value = Peripheral::Relay(RelayPeripheral::DoubleExclusive(0xab, 0x00));
+
+        let expected_data = vec![0x01, 0x01, 0xab, 0x00];
+
+        assert_eq!(value.serialize(), expected_data);
+    }
+
+    #[test]
+    fn relay_deserialize_test() {
+        let data = vec![0x01, 0x01, 0xab, 0x00];
+
+        let expected_value = Box::new(Peripheral::Relay(RelayPeripheral::DoubleExclusive(0xab, 0x00)));
 
         assert_eq!(Peripheral::try_deserialize(&data), Ok(expected_value));
     }
