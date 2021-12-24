@@ -303,7 +303,10 @@ mod tests {
         let mut peripherals = BTreeMap::new();
         peripherals.insert(
             0,
-            Peripheral::Bcm(BcmPeripheral::Rgbw(0x01, 0x23, 0x45, 0x67)),
+            Peripheral::Bcm(
+                BcmPeripheral::Rgbw(0x01, 0x23, 0x45, 0x67),
+                vec![0x00, 0x01],
+            ),
         );
 
         let mut initial_state = BTreeMap::new();
@@ -333,8 +336,9 @@ mod tests {
         let expected_data = vec![
             0x00, 0x00, 0x00, 0x01, // peripheral count
             0x00, 0x00, 0x00, 0x00, // peripheral index
-            0x06, // peripheral len
-            0x00, 0x02, 0x01, 0x23, 0x45, 0x67, // peripheral
+            0x0c, // peripheral len
+            0x00, 0x05, 0x02, 0x01, 0x23, 0x45, 0x67, 0x02, 0x00, 0x00, 0x00,
+            0x01, // peripheral
             0x00, 0x00, 0x00, 0x01, // initial state count
             0x00, 0x00, 0x00, 0x00, // state index
             0x02, // state value len
@@ -390,8 +394,9 @@ mod tests {
         let data = vec![
             0x00, 0x00, 0x00, 0x01, // peripheral count
             0x00, 0x00, 0x00, 0x00, // peripheral index
-            0x06, // peripheral len
-            0x00, 0x02, 0x01, 0x23, 0x45, 0x67, // peripheral
+            0x0c, // peripheral len
+            0x00, 0x05, 0x02, 0x01, 0x23, 0x45, 0x67, 0x02, 0x00, 0x00, 0x00,
+            0x01, // peripheral
             0x00, 0x00, 0x00, 0x01, // initial state count
             0x00, 0x00, 0x00, 0x00, // state index
             0x02, // state value len
@@ -420,7 +425,10 @@ mod tests {
         assert_eq!(config.peripherals.len(), 1);
         assert_eq!(
             *config.peripherals.get(&0).unwrap(),
-            Peripheral::Bcm(BcmPeripheral::Rgbw(0x01, 0x23, 0x45, 0x67))
+            Peripheral::Bcm(
+                BcmPeripheral::Rgbw(0x01, 0x23, 0x45, 0x67),
+                vec![0x00, 0x01]
+            )
         );
         assert_eq!(config.initial_state.len(), 1);
         assert_eq!(*config.initial_state.get(&0).unwrap(), Value::U8(0xff));
@@ -432,7 +440,10 @@ mod tests {
         let mut peripherals = BTreeMap::new();
         peripherals.insert(
             0,
-            Peripheral::Bcm(BcmPeripheral::Rgbw(0x01, 0x23, 0x45, 0x67)),
+            Peripheral::Bcm(
+                BcmPeripheral::Rgbw(0x01, 0x23, 0x45, 0x67),
+                vec![0x00, 0x01],
+            ),
         );
 
         let mut initial_state = BTreeMap::new();
@@ -465,8 +476,9 @@ mod tests {
         let expected_data = vec![
             0x00, 0x00, 0x00, 0x01, // peripheral count
             0x00, 0x00, 0x00, 0x00, // peripheral index
-            0x06, // peripheral len
-            0x00, 0x02, 0x01, 0x23, 0x45, 0x67, // peripheral
+            0x0c, // peripheral len
+            0x00, 0x05, 0x02, 0x01, 0x23, 0x45, 0x67, 0x02, 0x00, 0x00, 0x00,
+            0x01, // peripheral
             0x00, 0x00, 0x00, 0x01, // initial state count
             0x00, 0x00, 0x00, 0x00, // state index
             0x02, // state_value len
@@ -505,8 +517,9 @@ mod tests {
         let data = vec![
             0x00, 0x00, 0x00, 0x01, // peripheral count
             0x00, 0x00, 0x00, 0x00, // peripheral index
-            0x06, // peripheral len
-            0x00, 0x02, 0x01, 0x23, 0x45, 0x67, // peripheral
+            0x0c, // peripheral len
+            0x00, 0x05, 0x02, 0x01, 0x23, 0x45, 0x67, 0x02, 0x00, 0x00, 0x00,
+            0x01, // peripheral
             0x00, 0x00, 0x00, 0x01, // initial state count
             0x00, 0x00, 0x00, 0x00, // state index
             0x02, // state_value len
@@ -542,7 +555,10 @@ mod tests {
         assert_eq!(config.peripherals.len(), 1);
         assert_eq!(
             *config.peripherals.get(&0).unwrap(),
-            Peripheral::Bcm(BcmPeripheral::Rgbw(0x01, 0x23, 0x45, 0x67))
+            Peripheral::Bcm(
+                BcmPeripheral::Rgbw(0x01, 0x23, 0x45, 0x67),
+                vec![0x00, 0x01]
+            )
         );
         assert_eq!(config.initial_state.len(), 1);
         assert_eq!(*config.initial_state.get(&0).unwrap(), Value::U8(0xff));
