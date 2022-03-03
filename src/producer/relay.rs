@@ -89,54 +89,32 @@ impl TryDeserialize for RelaySetValueProducer {
 impl Serialize for RelayValue {
     fn serialize(&self) -> Vec<u8> {
         match *self {
-            RelayValue::Single(value) => vec![0x00, if value { 0x01 } else { 0x00 }],
-            RelayValue::DoubleExclusive(value) => {
-                let mut data = vec![0x01];
-                let mut value = value.serialize();
-                data.append(&mut value);
-                data
-            }
+            RelayValue::Single(value) => vec![if value { 0x00 } else { 0x01 }],
+            RelayValue::DoubleExclusive(RelayDoubleExclusiveValue::FirstChannelOn) => vec![0x02],
+            RelayValue::DoubleExclusive(RelayDoubleExclusiveValue::SecondChannelOn) => vec![0x03],
+            RelayValue::DoubleExclusive(RelayDoubleExclusiveValue::NoChannelOn) => vec![0x04],
         }
     }
 }
 
 impl TryDeserialize for RelayValue {
     fn try_deserialize(data: &[u8]) -> Result<Box<Self>, ConfigSerializerError> {
-        if data.len() < 2 {
-            return Err(ConfigSerializerError::WrongSize);
-        }
-
-        match data[0] {
-            0x00 => Ok(Box::new(RelayValue::Single(data[1] != 0x00))),
-            0x01 => {
-                let value = *RelayDoubleExclusiveValue::try_deserialize(&data[1..])?;
-                Ok(Box::new(RelayValue::DoubleExclusive(value)))
-            }
-            _ => Err(ConfigSerializerError::UnknownEnumVariant),
-        }
-    }
-}
-
-impl Serialize for RelayDoubleExclusiveValue {
-    fn serialize(&self) -> Vec<u8> {
-        match *self {
-            RelayDoubleExclusiveValue::FirstChannelOn => vec![0x00],
-            RelayDoubleExclusiveValue::SecondChannelOn => vec![0x01],
-            RelayDoubleExclusiveValue::NoChannelOn => vec![0x02],
-        }
-    }
-}
-
-impl TryDeserialize for RelayDoubleExclusiveValue {
-    fn try_deserialize(data: &[u8]) -> Result<Box<Self>, ConfigSerializerError> {
         if data.len() < 1 {
             return Err(ConfigSerializerError::WrongSize);
         }
 
         match data[0] {
-            0x00 => Ok(Box::new(RelayDoubleExclusiveValue::FirstChannelOn)),
-            0x01 => Ok(Box::new(RelayDoubleExclusiveValue::SecondChannelOn)),
-            0x02 => Ok(Box::new(RelayDoubleExclusiveValue::NoChannelOn)),
+            0x00 => Ok(Box::new(RelayValue::Single(true))),
+            0x01 => Ok(Box::new(RelayValue::Single(false))),
+            0x02 => Ok(Box::new(RelayValue::DoubleExclusive(
+                RelayDoubleExclusiveValue::FirstChannelOn,
+            ))),
+            0x03 => Ok(Box::new(RelayValue::DoubleExclusive(
+                RelayDoubleExclusiveValue::SecondChannelOn,
+            ))),
+            0x04 => Ok(Box::new(RelayValue::DoubleExclusive(
+                RelayDoubleExclusiveValue::NoChannelOn,
+            ))),
             _ => Err(ConfigSerializerError::UnknownEnumVariant),
         }
     }
@@ -168,14 +146,7 @@ mod tests {
             0x00,                                             // transmitter address
             0x00,                                             // transmitter address
             0x01,                                             // index
-            0x01,                                             // value
-            0x00,                                             // value
-            0x00,                                             // value
-            0x00,                                             // value
-            0x01,                                             // value
-            0x00,                                             // value
-            0x00,                                             // value
-            0x00,                                             // value
+            0x03,                                             // value
         ];
 
         let state_manager = StateManager::new();
@@ -200,14 +171,14 @@ mod tests {
             RelayValue::DoubleExclusive(RelayDoubleExclusiveValue::SecondChannelOn),
         );
 
-        let expected_data = vec![0xab, 0xab, 0x01, 0x01, 0x01];
+        let expected_data = vec![0xab, 0xab, 0x01, 0x03];
 
         assert_eq!(producer.serialize(), expected_data);
     }
 
     #[test]
     fn set_state_deserialize_test() {
-        let data = vec![0xab, 0xab, 0x01, 0x01, 0x01];
+        let data = vec![0xab, 0xab, 0x01, 0x03];
 
         let producer = RelaySetValueProducer::new(
             0xabab,
@@ -223,7 +194,7 @@ mod tests {
 
     #[test]
     fn set_state_deserialize_wrong_size_test() {
-        let data = vec![0xab, 0xab, 0x01, 0x01];
+        let data = vec![0xab, 0xab, 0x01];
 
         assert_eq!(
             RelaySetValueProducer::try_deserialize(&data),

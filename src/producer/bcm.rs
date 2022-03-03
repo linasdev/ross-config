@@ -354,9 +354,10 @@ impl TryDeserialize for BcmAnimateBrightnessStateProducer {
 impl Serialize for BcmValue {
     fn serialize(&self) -> Vec<u8> {
         match *self {
-            BcmValue::Single(value) => vec![0x00, value],
-            BcmValue::Rgb(r, g, b) => vec![0x01, r, g, b],
-            BcmValue::Rgbw(r, g, b, w) => vec![0x02, r, g, b, w],
+            BcmValue::Binary(value) => vec![0x00, if value { 0x01 } else { 0x00 }],
+            BcmValue::Single(value) => vec![0x01, value],
+            BcmValue::Rgb(r, g, b) => vec![0x02, r, g, b],
+            BcmValue::Rgbw(r, g, b, w) => vec![0x03, r, g, b, w],
         }
     }
 }
@@ -368,15 +369,22 @@ impl TryDeserialize for BcmValue {
         }
 
         match data[0] {
-            0x00 => Ok(Box::new(BcmValue::Single(data[1]))),
-            0x01 => {
+            0x00 => {
+                if data.len() < 2 {
+                    return Err(ConfigSerializerError::WrongSize);
+                }
+
+                Ok(Box::new(BcmValue::Binary(data[1] != 0x00)))
+            }
+            0x01 => Ok(Box::new(BcmValue::Single(data[1]))),
+            0x02 => {
                 if data.len() < 4 {
                     return Err(ConfigSerializerError::WrongSize);
                 }
 
                 Ok(Box::new(BcmValue::Rgb(data[1], data[2], data[3])))
             }
-            0x02 => {
+            0x03 => {
                 if data.len() < 5 {
                     return Err(ConfigSerializerError::WrongSize);
                 }
@@ -416,14 +424,10 @@ mod tests {
             0x00,                                                   // transmitter address
             0x00,                                                   // transmitter address
             0x01,                                                   // index
-            0x01,                                                   // value
-            0x00,                                                   // value
-            0x00,                                                   // value
-            0x00,                                                   // value
+            0x02,                                                   // value
             0x23,                                                   // value
             0x45,                                                   // value
             0x67,                                                   // value
-            0x00,                                                   // value
         ];
 
         let state_manager = StateManager::new();
@@ -445,14 +449,14 @@ mod tests {
         let producer =
             BcmChangeBrightnessProducer::new(0xabab, 0x01, BcmValue::Rgb(0x23, 0x45, 0x67));
 
-        let expected_data = vec![0xab, 0xab, 0x01, 0x01, 0x23, 0x45, 0x67];
+        let expected_data = vec![0xab, 0xab, 0x01, 0x02, 0x23, 0x45, 0x67];
 
         assert_eq!(producer.serialize(), expected_data);
     }
 
     #[test]
     fn change_brightness_deserialize_test() {
-        let data = vec![0xab, 0xab, 0x01, 0x01, 0x23, 0x45, 0x67];
+        let data = vec![0xab, 0xab, 0x01, 0x02, 0x23, 0x45, 0x67];
 
         let producer =
             BcmChangeBrightnessProducer::new(0xabab, 0x01, BcmValue::Rgb(0x23, 0x45, 0x67));
@@ -482,14 +486,10 @@ mod tests {
             0x00,                                                   // transmitter address
             0x00,                                                   // transmitter address
             0x01,                                                   // index
-            0x01,                                                   // value
-            0x00,                                                   // value
-            0x00,                                                   // value
-            0x00,                                                   // value
+            0x02,                                                   // value
             0x23,                                                   // value
             0x45,                                                   // value
             0x67,                                                   // value
-            0x00,                                                   // value
         ];
 
         let mut state_manager = StateManager::new();
@@ -551,14 +551,10 @@ mod tests {
             0xab,                                                    // duration
             0xab,                                                    // duration
             0xab,                                                    // duration
-            0x01,                                                    // target value
-            0x00,                                                    // target value
-            0x00,                                                    // target value
-            0x00,                                                    // target value
+            0x02,                                                    // target value
             0x23,                                                    // target value
             0x45,                                                    // target value
             0x67,                                                    // target value
-            0x00,                                                    // target value
         ];
 
         let state_manager = StateManager::new();
@@ -586,7 +582,7 @@ mod tests {
         );
 
         let expected_data = vec![
-            0xab, 0xab, 0x01, 0xab, 0xab, 0xab, 0xab, 0x01, 0x23, 0x45, 0x67,
+            0xab, 0xab, 0x01, 0xab, 0xab, 0xab, 0xab, 0x02, 0x23, 0x45, 0x67,
         ];
 
         assert_eq!(producer.serialize(), expected_data);
@@ -595,7 +591,7 @@ mod tests {
     #[test]
     fn animate_brightness_deserialize_test() {
         let data = vec![
-            0xab, 0xab, 0x01, 0xab, 0xab, 0xab, 0xab, 0x01, 0x23, 0x45, 0x67,
+            0xab, 0xab, 0x01, 0xab, 0xab, 0xab, 0xab, 0x02, 0x23, 0x45, 0x67,
         ];
 
         let producer = BcmAnimateBrightnessProducer::new(
@@ -634,14 +630,10 @@ mod tests {
             0xab,                                                    // duration
             0xab,                                                    // duration
             0xab,                                                    // duration
-            0x01,                                                    // target value
-            0x00,                                                    // target value
-            0x00,                                                    // target value
-            0x00,                                                    // target value
+            0x02,                                                    // target value
             0x23,                                                    // target value
             0x45,                                                    // target value
             0x67,                                                    // target value
-            0x00,                                                    // target value
         ];
 
         let mut state_manager = StateManager::new();
@@ -688,7 +680,7 @@ mod tests {
 
     #[test]
     fn animate_brightness_state_deserialize_wrong_size_test() {
-        let data = vec![0xab, 0xab, 0x01, 0xff, 0xff, 0xff];
+        let data = vec![0xab, 0xab, 0x02, 0xff, 0xff, 0xff];
 
         assert_eq!(
             BcmAnimateBrightnessStateProducer::try_deserialize(&data),
@@ -700,14 +692,14 @@ mod tests {
     fn bcm_value_single_serialize_test() {
         let value = BcmValue::Single(0xab);
 
-        let expected_data = vec![0x00, 0xab];
+        let expected_data = vec![0x01, 0xab];
 
         assert_eq!(value.serialize(), expected_data);
     }
 
     #[test]
     fn bcm_value_single_deserialize_test() {
-        let data = vec![0x00, 0xab];
+        let data = vec![0x01, 0xab];
 
         let expected_value = Box::new(BcmValue::Single(0xab));
 
@@ -718,14 +710,14 @@ mod tests {
     fn bcm_value_rgb_serialize_test() {
         let value = BcmValue::Rgb(0xab, 0xab, 0xab);
 
-        let expected_data = vec![0x01, 0xab, 0xab, 0xab];
+        let expected_data = vec![0x02, 0xab, 0xab, 0xab];
 
         assert_eq!(value.serialize(), expected_data);
     }
 
     #[test]
     fn bcm_value_rgb_deserialize_test() {
-        let data = vec![0x01, 0xab, 0xab, 0xab];
+        let data = vec![0x02, 0xab, 0xab, 0xab];
 
         let expected_value = Box::new(BcmValue::Rgb(0xab, 0xab, 0xab));
 
@@ -736,14 +728,14 @@ mod tests {
     fn bcm_value_rgbw_serialize_test() {
         let value = BcmValue::Rgbw(0xab, 0xab, 0xab, 0xab);
 
-        let expected_data = vec![0x02, 0xab, 0xab, 0xab, 0xab];
+        let expected_data = vec![0x03, 0xab, 0xab, 0xab, 0xab];
 
         assert_eq!(value.serialize(), expected_data);
     }
 
     #[test]
     fn bcm_value_rgbw_deserialize_test() {
-        let data = vec![0x02, 0xab, 0xab, 0xab, 0xab];
+        let data = vec![0x03, 0xab, 0xab, 0xab, 0xab];
 
         let expected_value = Box::new(BcmValue::Rgbw(0xab, 0xab, 0xab, 0xab));
 
