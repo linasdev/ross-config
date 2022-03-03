@@ -28,8 +28,8 @@ pub enum Value {
     U16(u16),
     U32(u32),
     Bool(bool),
-    Rgb(u8, u8, u8),
-    Rgbw(u8, u8, u8, u8),
+    Rgb(u8, u8, u8, u8),
+    Rgbw(u8, u8, u8, u8, u8),
 }
 
 impl Serialize for Value {
@@ -51,8 +51,8 @@ impl Serialize for Value {
             Value::Bool(value) => {
                 vec![0x03, if value { 0x01 } else { 0x00 }]
             }
-            Value::Rgb(r, g, b) => vec![0x04, r, g, b],
-            Value::Rgbw(r, g, b, w) => vec![0x05, r, g, b, w],
+            Value::Rgb(r, g, b, brightness) => vec![0x04, r, g, b, brightness],
+            Value::Rgbw(r, g, b, w, brightness) => vec![0x05, r, g, b, w, brightness],
         }
     }
 }
@@ -85,18 +85,20 @@ impl TryDeserialize for Value {
             }
             0x03 => Ok(Box::new(Value::Bool(data[1] != 0x00))),
             0x04 => {
-                if data.len() < 4 {
-                    return Err(ConfigSerializerError::WrongSize);
-                }
-
-                Ok(Box::new(Value::Rgb(data[1], data[2], data[3])))
-            }
-            0x05 => {
                 if data.len() < 5 {
                     return Err(ConfigSerializerError::WrongSize);
                 }
 
-                Ok(Box::new(Value::Rgbw(data[1], data[2], data[3], data[4])))
+                Ok(Box::new(Value::Rgb(data[1], data[2], data[3], data[4])))
+            }
+            0x05 => {
+                if data.len() < 6 {
+                    return Err(ConfigSerializerError::WrongSize);
+                }
+
+                Ok(Box::new(Value::Rgbw(
+                    data[1], data[2], data[3], data[4], data[5],
+                )))
             }
             _ => Err(ConfigSerializerError::UnknownEnumVariant),
         }
@@ -191,36 +193,36 @@ mod tests {
 
     #[test]
     fn value_rgb_serialize_test() {
-        let value = Value::Rgb(0x01, 0x23, 0x45);
+        let value = Value::Rgb(0x01, 0x23, 0x45, 0x67);
 
-        let expected_data = vec![0x04, 0x01, 0x23, 0x45];
+        let expected_data = vec![0x04, 0x01, 0x23, 0x45, 0x67];
 
         assert_eq!(value.serialize(), expected_data);
     }
 
     #[test]
     fn value_rgb_deserialize_test() {
-        let data = vec![0x04, 0x01, 0x23, 0x45];
+        let data = vec![0x04, 0x01, 0x23, 0x45, 0x67];
 
-        let expected_value = Box::new(Value::Rgb(0x01, 0x23, 0x45));
+        let expected_value = Box::new(Value::Rgb(0x01, 0x23, 0x45, 0x67));
 
         assert_eq!(Value::try_deserialize(&data), Ok(expected_value));
     }
 
     #[test]
     fn value_rgbw_serialize_test() {
-        let value = Value::Rgbw(0x01, 0x23, 0x45, 0x67);
+        let value = Value::Rgbw(0x01, 0x23, 0x45, 0x67, 0x89);
 
-        let expected_data = vec![0x05, 0x01, 0x23, 0x45, 0x67];
+        let expected_data = vec![0x05, 0x01, 0x23, 0x45, 0x67, 0x89];
 
         assert_eq!(value.serialize(), expected_data);
     }
 
     #[test]
     fn value_rgbw_deserialize_test() {
-        let data = vec![0x05, 0x01, 0x23, 0x45, 0x67];
+        let data = vec![0x05, 0x01, 0x23, 0x45, 0x67, 0x89];
 
-        let expected_value = Box::new(Value::Rgbw(0x01, 0x23, 0x45, 0x67));
+        let expected_value = Box::new(Value::Rgbw(0x01, 0x23, 0x45, 0x67, 0x89));
 
         assert_eq!(Value::try_deserialize(&data), Ok(expected_value));
     }
